@@ -4,39 +4,39 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import Home from "./pages/Home";
+import { CollectionDemoProvider } from "./contexts/CollectionDemoContext";
+import { lazy, Suspense } from "react";
 
-function Router() {
-  // make sure to consider if you need authentication for certain routes
-  return (
-    <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
-      <Route component={NotFound} />
-    </Switch>
-  );
+const Home = lazy(() => import("./pages/Home"));
+const Explore = lazy(() => import("./pages/Explore"));
+const Identify = lazy(() => import("./pages/Identify"));
+const PublicCollection = lazy(() => import("./pages/PublicCollection"));
+const StampDetail = lazy(() => import("./pages/StampDetail"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Albums = lazy(() => import("./pages/Albums"));
+
+function ComingSoon() {
+  return <Home />;
 }
 
-// NOTE: About Theme
-// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
-//   to keep consistent foreground/background color across components
-// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
+function Router() {
+  return <Suspense fallback={<div className="grid min-h-screen place-items-center bg-[#f7f5f0] text-sm font-semibold text-[#466a59]">Loading StampAtlas…</div>}><Switch>
+      <Route path="/" component={Home} />
+      <Route path="/explore" component={Explore} />
+      <Route path="/stamps/:slug" component={StampDetail} />
+      <Route path="/identify" component={Identify} />
+      <Route path="/dashboard" component={Dashboard} />
+      <Route path="/albums" component={Albums} />
+      <Route path="/collections/:username/:collectionSlug" component={PublicCollection} />
+      <Route path="/collections/:username" component={PublicCollection} />
+      <Route path="/404" component={NotFound} />
+      <Route path="/guides/:slug" component={ComingSoon} />
+      <Route component={NotFound} />
+    </Switch></Suspense>;
+}
 
 function App() {
-  return (
-    <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="light"
-        // switchable
-      >
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </ThemeProvider>
-    </ErrorBoundary>
-  );
+  return <ErrorBoundary><ThemeProvider defaultTheme="light"><CollectionDemoProvider><TooltipProvider><Toaster /><Router /></TooltipProvider></CollectionDemoProvider></ThemeProvider></ErrorBoundary>;
 }
 
 export default App;

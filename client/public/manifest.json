@@ -1,0 +1,17 @@
+{
+  "name": "StampAtlas",
+  "short_name": "StampAtlas",
+  "description": "A visual postage-stamp catalogue and personal collection workspace.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f5f0",
+  "theme_color": "#173a34",
+  "icons": [
+    {
+      "src": "/manus-storage/stampatlas-mark_a7f7f9ff.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

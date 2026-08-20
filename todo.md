@@ -1,0 +1,22 @@
+# Project TODO
+
+- [x] Public stamp catalogue with a filterable, searchable grid. Users can filter by country, era, topic, and condition. Each stamp card displays the stamp image, title, country, year, and estimated value.
+- [x] Stamp detail page showing full metadata including Scott/Stanley Gibbons reference, perforation, watermark, colour, and print run. The page also includes an evidence-led value panel with mint/used/FDC price ranges and source citations, plus a condition grading guide.
+- [x] Mock stamp identification flow where a user uploads a photo and the app returns the closest catalogue match along with a confidence score and key distinguishing features.
+- [x] Personal collection management for authenticated users — they can add stamps to their collection, record condition, purchase price, and acquisition date, and remove items.
+- [x] Album organiser allowing authenticated users to create named albums, assign stamps to albums, reorder items, and set a cover stamp.
+- [x] Collection dashboard (authenticated view) showing total stamp count, estimated portfolio value, country/era breakdown charts, and recently added items.
+- [x] Public collection profile page with a shareable URL that displays a user's full collection or a selected album in a read-only gallery view.
+- [x] Seeded mock catalogue data containing at least 40 stamps across 8 or more countries and 5 or more decades, with realistic metadata and placeholder image URLs, loaded on first run.
+- [x] Responsive top-navigation layout with a logo, search bar, Browse / My Collection / Albums navigation links, and sign-in / user avatar controls.
+- [x] Authentication must gate personal collection management, the album organiser, and the collection dashboard, while the catalogue, stamp detail pages, identification flow, and public profile pages remain publicly accessible.
+- [x] Implement responsive, accessible visual polish for a clean philately catalogue application.
+- [x] Add unit coverage and confirm type checking, build, and primary user flows.
+- [x] Implement and route `/explore`, `/identify`, `/dashboard`, and `/albums` so all top-navigation links and search destinations resolve to working pages.
+- [x] Apply and verify the responsive/accessibility polish across all actual feature pages before marking overall visual polish complete.
+- [x] Add explicit value-evidence citations for the mint, used, and FDC ranges using clearly labeled mock observations.
+- [x] Resolve shareable collection URLs to seeded profile data and support full-collection and selected-album gallery views.
+- [x] Run and document verification for all feature pages at mobile and desktop, including `/collections/:username`, `/dashboard`, and `/albums`.
+- [x] Add explicit accessibility checks for navigation, focus states, keyboard interaction, form controls, and reduced-motion behavior across the app.
+- [x] Create and run primary-flow coverage for browse/search, detail, identification, collection management, album organization, and CSV export.
+- [x] Verify authenticated pages using the persistent server-data path as well as the preview fallback state.
