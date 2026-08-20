@@ -1,12 +1,17 @@
 import AppShell from "@/components/AppShell";
 import { StampVisual } from "@/components/StampVisual";
 import { FeaturedStampCard } from "@/components/FeaturedStampCard";
-import { featuredStamps, stamps } from "@/data/catalog";
+import { countries, decades, featuredStamps, filterStamps, sources, stamps } from "@/data/catalog";
 import { ArrowRight, CheckCircle2, Layers3, Search, Sparkles } from "lucide-react";
+import { useMemo, useState } from "react";
 import { Link } from "wouter";
 
 export default function Home() {
   const [heroStamp, secondStamp, thirdStamp] = featuredStamps;
+  const [country, setCountry] = useState("All countries");
+  const [decade, setDecade] = useState("All eras");
+  const [source, setSource] = useState("All sources");
+  const filteredFeatured = useMemo(() => filterStamps({ country, decade, source }).slice(0, 4), [country, decade, source]);
   return (
     <AppShell>
       <main>
@@ -55,9 +60,15 @@ export default function Home() {
             <div><p className="eyebrow">Start with the visual record</p><h2 className="mt-4 font-display text-4xl font-semibold tracking-[-.055em] text-[#173a34]">Catalogue entries that reward a closer look.</h2></div>
             <p className="max-w-2xl text-base leading-7 text-[#52675d]">Use the public catalogue to move between countries, decades, and subjects. Every demo record has an image credit, identifying characteristics, and a carefully labelled evidence panel.</p>
           </div>
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            {featuredStamps.map((stamp, index) => <Link key={stamp.id} href={`/stamps/${stamp.slug}`}><FeaturedStampCard stamp={stamp} index={index} /></Link>)}
+          <div className="mt-8 grid gap-3 rounded-[1.25rem] border border-[#173a34]/10 bg-white/75 p-4 shadow-[0_10px_24px_rgba(39,65,50,.05)] md:grid-cols-3 dark:border-white/10 dark:bg-white/[.04]">
+            <HomeFilter label="Country" value={country} options={countries} onChange={setCountry} />
+            <HomeFilter label="Era" value={decade} options={decades} onChange={setDecade} />
+            <HomeFilter label="Source" value={source} options={sources} onChange={setSource} />
           </div>
+          <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            {filteredFeatured.map((stamp, index) => <Link key={stamp.id} href={`/stamps/${stamp.slug}`}><FeaturedStampCard stamp={stamp} index={index} /></Link>)}
+          </div>
+          {!filteredFeatured.length && <p className="mt-6 text-center text-sm text-[#60746a] dark:text-[#bfd0c2]">No stamps match this combination. Try a different country, era, or source.</p>}
           <div className="mt-10 text-center"><Link href="/explore" className="inline-flex items-center gap-2 text-sm font-semibold text-[#21493b] underline decoration-[#aac4b2] underline-offset-4 hover:decoration-[#21493b]">Browse all {stamps.length} demo records <ArrowRight size={15} /></Link></div>
         </section>
 
@@ -65,6 +76,10 @@ export default function Home() {
       </main>
     </AppShell>
   );
+}
+
+function HomeFilter({ label, value, options, onChange }: { label: string; value: string; options: string[]; onChange: (value: string) => void }) {
+  return <label className="text-xs font-bold uppercase tracking-[.12em] text-[#496054] dark:text-[#c6d6ca]">{label}<select value={value} onChange={(event) => onChange(event.target.value)} className="mt-2 h-10 w-full rounded-lg border border-[#173a34]/10 bg-[#fbfbf7] px-3 text-sm font-medium normal-case tracking-normal text-[#244537] outline-none focus:border-[#5d887a] focus:ring-4 focus:ring-[#dce8df] dark:border-white/15 dark:bg-[#18332b] dark:text-white">{options.map((option) => <option key={option}>{option}</option>)}</select></label>;
 }
 
 function Feature({ icon, number, title, text }: { icon: React.ReactNode; number: string; title: string; text: string }) {

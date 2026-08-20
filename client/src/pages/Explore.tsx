@@ -1,12 +1,12 @@
 import AppShell from "@/components/AppShell";
 import { StampVisual } from "@/components/StampVisual";
-import { conditions, countries, decades, filterStamps, topics } from "@/data/catalog";
+import { conditions, countries, decades, filterStamps, sources, topics } from "@/data/catalog";
 import { ChevronDown, Filter, Search, SlidersHorizontal, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link, useSearch } from "wouter";
 
-type Filters = { query: string; country: string; decade: string; topic: string; condition: string };
-const initialFilters: Filters = { query: "", country: "All countries", decade: "All eras", topic: "All topics", condition: "All conditions" };
+type Filters = { query: string; country: string; decade: string; topic: string; condition: string; source: string };
+const initialFilters: Filters = { query: "", country: "All countries", decade: "All eras", topic: "All topics", condition: "All conditions", source: "All sources" };
 
 export default function Explore() {
   const search = useSearch();
@@ -25,12 +25,13 @@ export default function Explore() {
       </div>
 
       <section className="mt-10 rounded-[1.4rem] border border-[#173a34]/10 bg-white/75 p-4 shadow-[0_12px_28px_rgba(39,65,50,.05)] sm:p-5" aria-label="Catalogue filters">
-        <div className="grid gap-3 lg:grid-cols-[1.55fr_repeat(4,.8fr)_auto]">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-7">
           <label className="relative block"><span className="sr-only">Search catalogue</span><Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6b766f]" size={17} /><input value={filters.query} onChange={(event) => update("query", event.target.value)} placeholder="Search by name, country, year..." className="h-11 w-full rounded-xl border border-[#1e302b]/10 bg-[#fbfbf7] pl-10 pr-4 text-sm outline-none focus:border-[#5d887a] focus:ring-4 focus:ring-[#dce8df]" /></label>
           <FilterSelect label="Country" value={filters.country} options={countries} onChange={(value) => update("country", value)} />
           <FilterSelect label="Era" value={filters.decade} options={decades} onChange={(value) => update("decade", value)} />
           <FilterSelect label="Topic" value={filters.topic} options={topics} onChange={(value) => update("topic", value)} />
           <FilterSelect label="Condition" value={filters.condition} options={conditions} onChange={(value) => update("condition", value)} />
+          <FilterSelect label="Source" value={filters.source} options={sources} onChange={(value) => update("source", value)} />
           <button type="button" onClick={() => setFilters(initialFilters)} disabled={!hasActiveFilter} className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-[#173a34]/10 px-3 text-sm font-semibold text-[#3b5b4c] transition hover:bg-[#edf3ed] disabled:cursor-not-allowed disabled:opacity-40"><X size={15} /> Clear</button>
         </div>
       </section>

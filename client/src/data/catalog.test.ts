@@ -20,6 +20,12 @@ describe("stamp catalogue seed", () => {
     expect(results.map((stamp) => stamp.slug)).toEqual(["flag-over-capitol"]);
   });
 
+  it("filters catalogue records by provenance source", () => {
+    const results = filterStamps({ source: "Wikimedia Commons", country: "United States" });
+    expect(results).toHaveLength(5);
+    expect(results.every((stamp) => stamp.provenance.provider === "Wikimedia Commons")).toBe(true);
+  });
+
   it("resolves seeded public profile and album data by shareable URL fragments", () => {
     expect(getPublicProfile("elena")?.albums).toHaveLength(2);
     expect(getPublicAlbum("elena", "modern-icons")?.stampSlugs).toContain("flag-over-capitol");

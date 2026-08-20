@@ -29,6 +29,12 @@ describe("external import persistence pipeline", () => {
     const pending = await caller.externalImports.list({ reviewStatus: "pending" });
     const record = pending.find((candidate) => candidate.sourceRecordId === sourceRecordId);
     expect(record?.id).toBeTruthy();
+    const pendingSummary = await caller.externalImports.pendingSummary();
+    expect(pendingSummary.count).toBeGreaterThan(0);
+    const updated = await caller.externalImports.updateMetadata({ id: record!.id, country: "Editorial Turkey", eraDecade: "1910s" });
+    expect(updated.normalizedCountry).toBe("Editorial Turkey");
+    expect(updated.eraDecade).toBe("1910s");
+    expect(updated.classificationMethod).toBe("manual_override");
     await caller.externalImports.review({ id: record!.id, reviewStatus: "approved", reviewNote: "Rights checked for test." });
     const published = await caller.externalImports.publish({ id: record!.id });
     expect(published.slug).toContain("pipeline-test-stamp");

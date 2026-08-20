@@ -1,0 +1,1 @@
+ALTER TABLE `externalStampRecords` MODIFY COLUMN `classificationMethod` enum('source_metadata','heuristic','manual_override','unclassified') NOT NULL DEFAULT 'unclassified';

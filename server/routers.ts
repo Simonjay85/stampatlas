@@ -45,8 +45,13 @@ export const appRouter = router({
   externalImports: router({
     list: adminProcedure.input(z.object({ reviewStatus: z.enum(["pending", "approved", "rejected"]).optional() }).optional()).query(({ input }) => db.listExternalStampRecords(input?.reviewStatus)),
     stage: adminProcedure.input(z.object({ provider: z.enum(["wikimedia_commons", "smithsonian"]), query: z.string().min(1).max(500), records: z.array(stagedRecordSchema).min(1).max(100) })).mutation(({ ctx, input }) => db.stageExternalStampRecords(ctx.user.id, input.provider, input.query, input.records)),
+    updateMetadata: adminProcedure.input(z.object({ id: z.number().int().positive(), country: z.string().trim().max(160).nullable(), eraDecade: z.string().regex(/^\d{4}s$/).nullable() })).mutation(({ ctx, input }) => {
+      const { id, ...metadata } = input;
+      return db.updateExternalStampMetadata(ctx.user.id, id, metadata);
+    }),
     review: adminProcedure.input(z.object({ id: z.number().int().positive(), reviewStatus: z.enum(["approved", "rejected"]), reviewNote: z.string().max(4000).default("") })).mutation(({ ctx, input }) => db.reviewExternalStampRecord(ctx.user.id, input.id, input.reviewStatus, input.reviewNote)),
     publish: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ ctx, input }) => db.publishExternalStampRecord(ctx.user.id, input.id)),
+    pendingSummary: adminProcedure.query(() => db.getPendingExternalImportSummary()),
   }),
   externalCatalogue: router({
     list: publicProcedure.query(() => db.listPublishedExternalStamps()),

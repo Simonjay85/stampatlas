@@ -196,6 +196,23 @@ export async function reviewExternalStampRecord(reviewerUserId: number, recordId
   return listExternalStampRecords();
 }
 
+export async function updateExternalStampMetadata(editorUserId: number, recordId: number, metadata: { country: string | null; eraDecade: string | null }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  await db.update(externalStampRecords).set({ country: metadata.country, normalizedCountry: metadata.country, eraDecade: metadata.eraDecade, classificationMethod: "manual_override", classificationConfidence: 100, reviewedByUserId: editorUserId, updatedAt: new Date() }).where(eq(externalStampRecords.id, recordId));
+  const updated = await db.select().from(externalStampRecords).where(eq(externalStampRecords.id, recordId)).limit(1);
+  if (!updated[0]) throw new Error("Imported record unavailable");
+  return updated[0];
+}
+
+export async function getPendingExternalImportSummary() {
+  const pending = await listExternalStampRecords("pending");
+  return {
+    count: pending.length,
+    newestRetrievedAt: pending[0]?.sourceRetrievedAt ?? null,
+  };
+}
+
 function publishableSlug(title: string, sourceRecordId: string) {
   const normalized = title.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 140);
   const suffix = sourceRecordId.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(-30) || "record";

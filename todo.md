@@ -44,3 +44,10 @@
 - [x] Kiểm tra và ghi nhận giao diện admin imports cùng provenance hover ở cả light và dark mode.
 - [x] Bổ sung kiểm thử tập trung xác nhận dữ liệu provenance được render trên thẻ tem trang chủ.
 - [x] Xác minh `/admin/imports` ở cả light và dark mode, bao gồm tương phản và action controls.
+- [x] Thêm chỉnh sửa thủ công quốc gia và niên đại cho tem nguồn ngoài trên màn hình admin trước khi phê duyệt.
+- [x] Thêm bộ lọc tìm kiếm nâng cao theo quốc gia, niên đại và nguồn gốc trên giao diện catalogue.
+- [x] Thêm chỉ báo thông báo trong admin về số bản ghi tem mới đang chờ phê duyệt.
+- [x] Kiểm thử API chỉnh sửa metadata, lọc nâng cao và trạng thái thông báo chờ duyệt.
+- [x] Giữ editor metadata mở khi lưu thất bại, hiển thị trạng thái lưu và phản hồi thành công/lỗi rõ ràng.
+- [x] Kiểm thử callback lưu metadata thành công và thất bại ở thẻ duyệt admin.
+- [x] Mô phỏng callback lưu metadata thành công và lỗi để xác nhận editor, trạng thái và thông báo tương tác thực tế.

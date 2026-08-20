@@ -66,7 +66,7 @@ export const externalStampRecords = mysqlTable("externalStampRecords", {
   normalizedCountry: varchar("normalizedCountry", { length: 160 }),
   issueDate: varchar("issueDate", { length: 64 }),
   eraDecade: varchar("eraDecade", { length: 16 }),
-  classificationMethod: mysqlEnum("classificationMethod", ["source_metadata", "heuristic", "unclassified"]).notNull().default("unclassified"),
+  classificationMethod: mysqlEnum("classificationMethod", ["source_metadata", "heuristic", "manual_override", "unclassified"]).notNull().default("unclassified"),
   classificationConfidence: int("classificationConfidence").notNull().default(0),
   denomination: varchar("denomination", { length: 80 }),
   description: text("description"),

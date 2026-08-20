@@ -167,6 +167,7 @@ export type CatalogFilter = {
   decade?: string;
   topic?: string;
   condition?: string;
+  source?: string;
 };
 
 export function filterStamps(filters: CatalogFilter) {
@@ -178,7 +179,8 @@ export function filterStamps(filters: CatalogFilter) {
       (!filters.country || filters.country === "All countries" || stamp.country === filters.country) &&
       (!filters.decade || filters.decade === "All eras" || stamp.decade === filters.decade) &&
       (!filters.topic || filters.topic === "All topics" || stamp.topic === filters.topic) &&
-      (!filters.condition || filters.condition === "All conditions" || stamp.condition === filters.condition)
+      (!filters.condition || filters.condition === "All conditions" || stamp.condition === filters.condition) &&
+      (!filters.source || filters.source === "All sources" || stamp.provenance.provider === filters.source)
     );
   });
 }
@@ -187,6 +189,7 @@ export const countries = ["All countries", ...Array.from(new Set(stamps.map((sta
 export const decades = ["All eras", ...Array.from(new Set(stamps.map((stamp) => stamp.decade)))];
 export const topics = ["All topics", ...Array.from(new Set(stamps.map((stamp) => stamp.topic)))];
 export const conditions = ["All conditions", "Mint", "Used", "Fine used", "FDC"];
+export const sources = ["All sources", ...Array.from(new Set(stamps.map((stamp) => stamp.provenance.provider)))];
 
 export function getStamp(slug: string) {
   return stamps.find((stamp) => stamp.slug === slug);
