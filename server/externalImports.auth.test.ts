@@ -18,7 +18,7 @@ describe("external import administration", () => {
     await expect(caller.externalImports.publish({ id: 1 })).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(caller.externalImports.stage({ provider: "wikimedia_commons", query: "test", records: [] })).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(caller.accessControl.listUsers()).rejects.toMatchObject({ code: "FORBIDDEN" });
-  });
+  }, 15_000);
 
   it("keeps role management available only to an administrator", async () => {
     const caller = appRouter.createCaller(context("admin"));

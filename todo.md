@@ -106,3 +106,12 @@
 - [ ] Thêm GitHub Actions CI cho type-check, tests, build và E2E công khai phù hợp.
 - [ ] Mở rộng test catalogue, inventory, nhập/xuất, nhận diện và kiểm soát quyền truy cập chéo người dùng.
 - [ ] Chạy validation cuối, tạo checkpoint, push nhánh và tạo pull request chưa merge vào `feat/stamp-atlas-mvp`.
+- [x] Thêm nhận diện tem bằng AI từ ảnh tải lên, có JSON có cấu trúc, giới hạn file, không lưu ảnh nguồn và cảnh báo không xác thực/định giá.
+- [x] Hiển thị tiến trình, trạng thái thành công/lỗi và khả năng thử lại rõ ràng cho import/export CSV của collection.
+- [x] Thêm nút retry rõ ràng sau lỗi import hoặc export CSV/backup và nêu trạng thái từng bước của export.
+- [x] Bổ sung test UI cho trạng thái loading, success, error và retry của công cụ import/export collection.
+- [x] Bổ sung trạng thái từng bước rõ ràng cho export CSV/backup, gồm preparing data, creating file và download started.
+- [ ] Mở rộng test UI bao phủ loading/success/error/retry của import và backup JSON.
+- [x] Thêm test UI cho export CSV dashboard bao phủ preparing, success, error và Retry export.
+- [x] Thêm nút chia sẻ an toàn cho hồ sơ và bộ sưu tập công khai, dùng Web Share khi có sẵn và liên kết xã hội dự phòng.
+- [ ] Bổ sung test, kiểm tra trực quan, checkpoint và cập nhật pull request cho các tính năng AI, CSV và chia sẻ mới.

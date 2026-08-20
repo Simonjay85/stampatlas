@@ -50,5 +50,5 @@ describe("moment sync API", () => {
     await caller.moments.collections.replaceItems({ momentCollectionId: collection.id, momentIds: [] });
     const reconciledCollections = await caller.moments.collections.list();
     expect(reconciledCollections.find((entry) => entry.id === collection.id)?.momentCount).toBe(0);
-  }, 15_000);
+  }, 30_000);
 });

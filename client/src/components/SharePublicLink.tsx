@@ -1,0 +1,11 @@
+import { Check, Copy, Facebook, Share2 } from "lucide-react";
+import React from "react";
+import { useState } from "react";
+
+export function SharePublicLink({ title, text, compact = false }: { title: string; text: string; compact?: boolean }) {
+  const [status, setStatus] = useState<"idle" | "copied" | "error">("idle");
+  const share = async () => { const url = window.location.href; try { if (navigator.share) { await navigator.share({ title, text, url }); return; } await navigator.clipboard.writeText(url); setStatus("copied"); window.setTimeout(() => setStatus("idle"), 2400); } catch { setStatus("error"); window.setTimeout(() => setStatus("idle"), 3000); } };
+  const url = typeof window === "undefined" ? "" : window.location.href;
+  const encodedUrl = encodeURIComponent(url); const encodedText = encodeURIComponent(`${title} — ${text}`);
+  return <div className="flex flex-wrap items-center gap-2"><button type="button" onClick={share} className={`inline-flex items-center gap-2 rounded-full border border-current/20 bg-white/10 px-3 py-2 text-sm font-semibold transition hover:bg-white/20 ${compact ? "text-xs" : ""}`} aria-label="Share this public page"><Share2 size={compact ? 14 : 15} /> {status === "copied" ? "Link copied" : status === "error" ? "Try again" : "Share"}</button><button type="button" onClick={() => navigator.clipboard?.writeText(url).then(() => { setStatus("copied"); window.setTimeout(() => setStatus("idle"), 2400); }).catch(() => setStatus("error"))} className="grid h-9 w-9 place-items-center rounded-full border border-current/20 bg-white/10 transition hover:bg-white/20" aria-label="Copy public link" title="Copy public link">{status === "copied" ? <Check size={15} /> : <Copy size={15} />}</button><a href={`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`} target="_blank" rel="noreferrer" className="grid h-9 w-9 place-items-center rounded-full border border-current/20 bg-white/10 transition hover:bg-white/20" aria-label="Share on Facebook" title="Share on Facebook"><Facebook size={15} /></a><a href={`https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedText}`} target="_blank" rel="noreferrer" className="grid h-9 w-9 place-items-center rounded-full border border-current/20 bg-white/10 text-xs font-bold transition hover:bg-white/20" aria-label="Share on X" title="Share on X">X</a></div>;
+}

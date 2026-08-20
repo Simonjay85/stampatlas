@@ -5,6 +5,7 @@ import { adminProcedure, protectedProcedure, publicProcedure, reviewerProcedure,
 import { systemRouter } from "./_core/systemRouter";
 import * as db from "./db";
 import { storagePut } from "./storage";
+import { analyzeStampImage } from "./identificationAi";
 import { filterStamps, getStamp } from "../client/src/data/catalog";
 import { isVisibleCatalogueStamp, normalizeExternalStamp, normalizeSeededStamp } from "../client/src/data/normalizedCatalogue";
 
@@ -98,6 +99,16 @@ export const appRouter = router({
   identification: router({
     list: protectedProcedure.query(({ ctx }) => db.listIdentificationScans(ctx.user.id)),
     create: protectedProcedure.input(identificationScanSchema).mutation(({ ctx, input }) => db.createIdentificationScan(ctx.user.id, { ...input, status: input.status ?? "needs_research" })),
+    analyze: protectedProcedure.input(z.object({ dataUrl: z.string().max(8_500_000), mimeType: z.enum(["image/jpeg", "image/png", "image/webp"]) })).mutation(async ({ ctx, input }) => {
+      const match = input.dataUrl.match(/^data:([\w/+.-]+);base64,([A-Za-z0-9+/=]+)$/);
+      if (!match || match[1] !== input.mimeType) throw new Error("Invalid image upload payload");
+      if (Buffer.from(match[2], "base64").length > 6 * 1024 * 1024) throw new Error("Images must be 6MB or smaller");
+      const recognition = await analyzeStampImage(input.dataUrl);
+      const candidateSlugs = [recognition.likelySlug, ...recognition.alternativeSlugs].filter((slug): slug is string => Boolean(slug));
+      if (!candidateSlugs.length) throw new Error("The image could not be safely matched to a catalogue record. Try a clearer image.");
+      await db.createIdentificationScan(ctx.user.id, { topCandidateSlug: recognition.likelySlug, candidateSlugs, status: "needs_research", note: recognition.summary, aiAnalysisJson: JSON.stringify({ confidence: recognition.confidence, visualClues: recognition.visualClues, needsResearch: recognition.needsResearch }), model: recognition.model });
+      return recognition;
+    }),
     update: protectedProcedure.input(z.object({ id: z.number().int().positive(), status: z.enum(["reviewed", "needs_research", "dismissed"]).optional(), note: z.string().trim().max(2000).nullable().optional() })).mutation(({ ctx, input }) => { const { id, ...patch } = input; return db.updateIdentificationScan(ctx.user.id, id, patch); }),
     remove: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ ctx, input }) => db.deleteIdentificationScan(ctx.user.id, input.id)),
   }),

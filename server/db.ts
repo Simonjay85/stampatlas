@@ -376,7 +376,7 @@ export async function getPublishedExternalStampsBySlugs(slugs: string[]) {
 export type MomentMediaInput = { storageKey: string; mediaUrl: string; mimeType: string; caption?: string | null };
 export type MomentCreateInput = { title: string; note: string; occurredAt: Date; locationLabel?: string | null; mood?: string | null; visibility: "private" | "shared_link"; isFavorite: boolean; tags: string[]; media: MomentMediaInput[] };
 export type MomentUpdateInput = Partial<Omit<MomentCreateInput, "media">>;
-export type IdentificationScanInput = { topCandidateSlug?: string | null; candidateSlugs: string[]; status: "reviewed" | "needs_research" | "dismissed"; note?: string | null };
+export type IdentificationScanInput = { topCandidateSlug?: string | null; candidateSlugs: string[]; status: "reviewed" | "needs_research" | "dismissed"; note?: string | null; aiAnalysisJson?: string | null; model?: string | null };
 
 export async function listIdentificationScans(userId: number) {
   const db = await getDb();
@@ -386,7 +386,7 @@ export async function listIdentificationScans(userId: number) {
 export async function createIdentificationScan(userId: number, input: IdentificationScanInput) {
   const db = await getDb();
   if (!db) throw new Error("Database unavailable");
-  await db.insert(identificationScans).values({ userId, topCandidateSlug: input.topCandidateSlug ?? null, candidateSlugs: JSON.stringify(Array.from(new Set(input.candidateSlugs)).slice(0, 12)), status: input.status, note: input.note ?? null });
+  await db.insert(identificationScans).values({ userId, topCandidateSlug: input.topCandidateSlug ?? null, candidateSlugs: JSON.stringify(Array.from(new Set(input.candidateSlugs)).slice(0, 12)), status: input.status, note: input.note ?? null, aiAnalysisJson: input.aiAnalysisJson ?? null, model: input.model ?? null });
   return listIdentificationScans(userId);
 }
 export async function updateIdentificationScan(userId: number, id: number, patch: Partial<Pick<IdentificationScanInput, "status" | "note">>) {

@@ -206,6 +206,8 @@ export const identificationScans = mysqlTable("identificationScans", {
   userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
   topCandidateSlug: varchar("topCandidateSlug", { length: 160 }),
   candidateSlugs: text("candidateSlugs").notNull(),
+  aiAnalysisJson: text("aiAnalysisJson"),
+  model: varchar("model", { length: 120 }),
   status: mysqlEnum("status", ["reviewed", "needs_research", "dismissed"]).notNull().default("needs_research"),
   note: text("note"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
