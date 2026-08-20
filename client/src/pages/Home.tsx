@@ -10,7 +10,7 @@ export default function Home() {
     <AppShell>
       <main>
         <section className="hero-noise overflow-hidden border-b border-[#1e302b]/10 bg-[#e9eee6]">
-          <div className="container grid min-h-[620px] gap-12 py-14 lg:grid-cols-[.94fr_1.06fr] lg:items-center lg:py-20">
+          <div className="container grid min-h-[620px] gap-10 py-14 lg:grid-cols-[minmax(0,.96fr)_minmax(0,1.04fr)] lg:items-center lg:py-20">
             <div className="relative z-10 max-w-xl">
               <div className="eyebrow"><span className="h-1.5 w-1.5 rounded-full bg-[#d48a35]" /> Visual cataloguing for collectors</div>
               <h1 className="mt-6 font-display text-[clamp(3rem,6vw,5.8rem)] font-semibold leading-[.93] tracking-[-.065em] text-[#173a34]">The collection deserves a clearer story.</h1>
@@ -26,25 +26,25 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="relative mx-auto h-[480px] w-full max-w-[640px] lg:h-[560px]">
-              <div className="absolute left-[8%] top-[9%] h-[370px] w-[72%] rounded-[32px] border border-white/90 bg-[#c8d8cb] shadow-[0_30px_70px_rgba(33,68,53,.18)] lg:h-[425px]" />
-              <div className="absolute left-[15%] top-[14%] grid h-[370px] w-[72%] place-items-center overflow-hidden rounded-[26px] bg-[#dce5da] lg:h-[425px]">
+            <div className="relative mx-auto h-[450px] w-full max-w-[540px] overflow-hidden lg:h-[510px] lg:overflow-visible">
+              <div className="absolute left-[10%] top-[11%] h-[340px] w-[70%] rounded-[32px] border border-white/90 bg-[#c8d8cb] shadow-[0_30px_70px_rgba(33,68,53,.18)] lg:h-[390px]" />
+              <div className="absolute left-[17%] top-[16%] grid h-[340px] w-[70%] place-items-center overflow-hidden rounded-[26px] bg-[#dce5da] lg:h-[390px]">
                 <div className="absolute inset-0 opacity-[.4] [background-image:radial-gradient(#79958a_1px,transparent_1px)] [background-size:14px_14px]" />
-                <StampVisual stamp={heroStamp} className="relative z-10 h-[265px] w-[210px] rotate-[-5deg] shadow-[0_22px_28px_rgba(24,58,47,.22)] lg:h-[318px] lg:w-[252px]" imageClassName="object-cover" />
+                <StampVisual stamp={heroStamp} className="relative z-10 h-[238px] w-[188px] rotate-[-5deg] shadow-[0_22px_28px_rgba(24,58,47,.22)] lg:h-[278px] lg:w-[220px]" imageClassName="object-cover" />
               </div>
-              <div className="absolute -left-1 top-[46%] rounded-2xl border border-white/70 bg-[#fcfcf8]/95 p-4 shadow-[0_20px_38px_rgba(29,48,39,.14)] backdrop-blur">
+              <div className="absolute left-[2%] top-[47%] z-20 rounded-2xl border border-white/70 bg-[#fcfcf8]/95 p-3.5 shadow-[0_20px_38px_rgba(29,48,39,.14)] backdrop-blur">
                 <div className="flex items-center gap-3">
                   <div className="grid h-9 w-9 place-items-center rounded-full bg-[#e3f0e3] text-[#337257]"><Layers3 size={18} /></div>
                   <div><p className="text-xs text-[#68766e]">Added to album</p><p className="text-sm font-semibold">Modern icons</p></div>
                 </div>
               </div>
-              <div className="absolute -right-2 bottom-[9%] w-[220px] rounded-2xl border border-[#173a34]/10 bg-[#173a34] p-4 text-white shadow-[0_20px_38px_rgba(22,56,47,.24)]">
+              <div className="absolute right-[1%] bottom-[10%] z-20 w-[200px] rounded-2xl border border-[#173a34]/10 bg-[#173a34] p-4 text-white shadow-[0_20px_38px_rgba(22,56,47,.24)]">
                 <div className="flex items-center gap-2 text-[#e8c879]"><Sparkles size={15} /><span className="text-xs font-semibold uppercase tracking-[.13em]">Visual match</span></div>
                 <p className="mt-3 font-display text-lg leading-tight">Flag Over Capitol</p>
                 <div className="mt-3 flex items-center justify-between text-xs text-[#b9cbc0]"><span>Matching colour</span><span className="font-semibold text-[#f5d78c]">92%</span></div>
               </div>
-              <StampVisual stamp={secondStamp} className="absolute right-[2%] top-[5%] h-[122px] w-[97px] rotate-[9deg] shadow-lg" showPerforation={false} />
-              <StampVisual stamp={thirdStamp} className="absolute bottom-[1%] left-[25%] h-[104px] w-[83px] rotate-[8deg] shadow-lg" showPerforation={false} />
+              <StampVisual stamp={secondStamp} className="absolute right-[4%] top-[7%] h-[108px] w-[86px] rotate-[9deg] shadow-lg" showPerforation={false} />
+              <StampVisual stamp={thirdStamp} className="absolute bottom-[3%] left-[27%] h-[92px] w-[73px] rotate-[8deg] shadow-lg" showPerforation={false} />
             </div>
           </div>
         </section>

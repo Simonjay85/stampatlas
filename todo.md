@@ -20,3 +20,5 @@
 - [x] Add explicit accessibility checks for navigation, focus states, keyboard interaction, form controls, and reduced-motion behavior across the app.
 - [x] Create and run primary-flow coverage for browse/search, detail, identification, collection management, album organization, and CSV export.
 - [x] Verify authenticated pages using the persistent server-data path as well as the preview fallback state.
+- [x] Sửa hero để tem chính, tem phụ và các thẻ nổi không che nội dung hoặc tràn ra ngoài ở màn hình desktop hẹp.
+- [x] Kiểm tra hero ở kích thước màn hình người dùng và các breakpoint desktop/mobile sau khi sửa.

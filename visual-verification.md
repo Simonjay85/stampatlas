@@ -13,3 +13,5 @@ The public homepage, searchable catalogue, stamp detail view, and mock identifie
 The full public collection and selected public album galleries were also verified at 375px. Both routes preserve the profile summary, readable stamp cards, gallery selection controls, and share action without horizontal overflow.
 
 Keyboard and accessibility safeguards were reviewed in the shared app shell: a skip link targets the main content container, all interactive controls receive a visible focus treatment, form controls have labels or accessible names, and motion is curtailed when `prefers-reduced-motion` is enabled. Persistent authenticated collection and album access was additionally exercised through a database-backed tRPC integration test.
+
+Hero layout fix: at 1444px, 1024px, and 375px viewports, the stamp composition remains contained within its illustration column, the main copy is unobscured, and both floating information cards stay readable above the central stamp.
