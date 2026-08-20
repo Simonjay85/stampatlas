@@ -114,4 +114,4 @@
 - [ ] Mở rộng test UI bao phủ loading/success/error/retry của import và backup JSON.
 - [x] Thêm test UI cho export CSV dashboard bao phủ preparing, success, error và Retry export.
 - [x] Thêm nút chia sẻ an toàn cho hồ sơ và bộ sưu tập công khai, dùng Web Share khi có sẵn và liên kết xã hội dự phòng.
-- [ ] Bổ sung test, kiểm tra trực quan, checkpoint và cập nhật pull request cho các tính năng AI, CSV và chia sẻ mới.
+- [x] Bổ sung test, kiểm tra trực quan, checkpoint và cập nhật pull request cho các tính năng AI, CSV và chia sẻ mới.
