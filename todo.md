@@ -26,5 +26,5 @@
 - [x] Thêm dark mode có thể chuyển đổi từ thanh điều hướng và lưu lựa chọn người dùng.
 - [x] Thêm hiệu ứng hover nhẹ, tôn trọng reduced motion, cho các thẻ tem.
 - [x] Kiểm tra lại giao diện sáng/tối và ảnh tem mới ở desktop lẫn mobile.
-- [ ] Xuất bản mã nguồn StampAtlas hiện tại lên repository GitHub của người dùng và xác nhận liên kết.
-- [ ] Tạo repository GitHub công khai tên stampatlas và xuất bản phiên bản hoàn chỉnh hiện tại.
+- [x] Xuất bản mã nguồn StampAtlas hiện tại lên repository GitHub của người dùng và xác nhận liên kết.
+- [x] Tạo repository GitHub công khai tên stampatlas và xuất bản phiên bản hoàn chỉnh hiện tại.
