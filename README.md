@@ -42,6 +42,18 @@ Schema changes follow the Drizzle workflow: update `drizzle/schema.ts`, run `pnp
 
 The app includes a web manifest, icon, theme color, and lightweight navigation fallback service worker. It can be installed from compatible browsers.
 
+## External catalogue import examples
+
+StampAtlas includes a rights-aware staging model for external stamp data. It deliberately does **not** scrape StampWorld. The sample scripts call documented APIs and produce normalized candidate JSON for administrator review.
+
+```bash
+pnpm import:wikimedia -- --query "postage stamp" --limit 10 --out /tmp/wikimedia-stamps.json
+export SMITHSONIAN_API_KEY="your-key"
+pnpm import:smithsonian -- --query "postage stamp" --limit 10 --out /tmp/smithsonian-stamps.json
+```
+
+See [`docs/external-import-pipeline.md`](docs/external-import-pipeline.md) for the database model, staging/review controls, and safe operational workflow. See [`docs/stampworld-api-permission-request.md`](docs/stampworld-api-permission-request.md) for an email template and the exact licensing questions to send StampWorld.
+
 ## Important product boundary
 
 StampAtlas is a collection workspace and educational catalogue shell. It must not be represented as a professional authentication service, price guide, or valuation provider. Any real catalogue reference, market observation, image, or appraisal integration needs verified licensing and an explicit provider contract.

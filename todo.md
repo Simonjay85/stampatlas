@@ -28,3 +28,11 @@
 - [x] Kiểm tra lại giao diện sáng/tối và ảnh tem mới ở desktop lẫn mobile.
 - [x] Xuất bản mã nguồn StampAtlas hiện tại lên repository GitHub của người dùng và xác nhận liên kết.
 - [x] Tạo repository GitHub công khai tên stampatlas và xuất bản phiên bản hoàn chỉnh hiện tại.
+- [x] Đánh giá điều khoản, robots.txt và phương án tích hợp hợp pháp từ StampWorld hoặc nguồn dữ liệu tem thay thế.
+- [x] Mở rộng cơ sở dữ liệu để lưu bản ghi nguồn ngoài, tài sản ảnh, provenance, quyền sử dụng và trạng thái duyệt.
+- [x] Tạo pipeline mẫu nhập metadata tem qua Wikimedia Commons và Smithsonian Open Access mà không thu thập StampWorld trái phép.
+- [x] Thêm API quản trị để duyệt và xuất bản bản ghi tem đã nhập.
+- [x] Soạn hướng dẫn liên hệ StampWorld để xin API, export feed hoặc giấy phép sử dụng chính thức.
+- [x] Kiểm thử schema, adapter và luồng duyệt dữ liệu nhập.
+- [x] Triển khai publish bản ghi tem nguồn ngoài đã được duyệt vào mô hình catalogue công khai với quyền truy cập quản trị.
+- [x] Thêm kiểm thử tích hợp cho luồng stage, lưu asset, review và publish dữ liệu tem nhập.

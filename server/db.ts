@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { albums, albumItems, collectionItems, InsertUser, users } from "../drizzle/schema";
+import { albums, albumItems, collectionItems, externalImportJobs, externalStampAssets, externalStampRecords, InsertUser, publishedExternalStamps, users } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -43,6 +43,9 @@ export async function getUserByOpenId(openId: string) {
 export type CollectionCondition = "Mint" | "Fine used" | "Used" | "FDC";
 export type CollectionItemInput = { stampSlug: string; condition: CollectionCondition; purchasePrice: number; acquiredAt: string; notes: string };
 export type AlbumInput = { name: string; description: string; coverStampSlug: string };
+export type ReuseStatus = "public_domain" | "cc_by" | "permission_granted" | "metadata_only" | "needs_review" | "blocked";
+export type ImportedAssetInput = { providerAssetId: string; mediaUrl: string; previewUrl?: string | null; mimeType?: string | null; creator?: string | null; attribution?: string | null; rightsLabel?: string | null; rightsUrl?: string | null; reuseStatus: ReuseStatus };
+export type ImportedStampInput = { sourceRecordId: string; canonicalUrl: string; title: string; country?: string | null; issueDate?: string | null; denomination?: string | null; description?: string | null; reuseStatus: ReuseStatus; rightsLabel?: string | null; rightsUrl?: string | null; attribution?: string | null; sourcePayload: string; assets: ImportedAssetInput[] };
 
 const demoItems: CollectionItemInput[] = [
   { stampSlug: "flag-over-capitol", condition: "Mint", purchasePrice: 18, acquiredAt: "2026-08-12", notes: "Crisp margins; acquired from a local club exchange." },
@@ -154,4 +157,63 @@ export async function reorderAlbumItems(userId: number, albumId: number, collect
     await db.update(albumItems).set({ position }).where(and(eq(albumItems.albumId, albumId), eq(albumItems.collectionItemId, collectionItemId)));
   }
   return listAlbums(userId);
+}
+
+export async function stageExternalStampRecords(requestedByUserId: number, provider: "wikimedia_commons" | "smithsonian", query: string, records: ImportedStampInput[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const created = await db.insert(externalImportJobs).values({ provider, query, requestedByUserId, status: "queued", receivedCount: records.length });
+  const importJobId = Number(created[0].insertId);
+  let stagedCount = 0;
+  for (const record of records) {
+    await db.insert(externalStampRecords).values({ importJobId, provider, sourceRecordId: record.sourceRecordId, canonicalUrl: record.canonicalUrl, title: record.title, country: record.country ?? null, issueDate: record.issueDate ?? null, denomination: record.denomination ?? null, description: record.description ?? null, reuseStatus: record.reuseStatus, rightsLabel: record.rightsLabel ?? null, rightsUrl: record.rightsUrl ?? null, attribution: record.attribution ?? null, sourcePayload: record.sourcePayload }).onDuplicateKeyUpdate({ set: { importJobId, canonicalUrl: record.canonicalUrl, title: record.title, country: record.country ?? null, issueDate: record.issueDate ?? null, denomination: record.denomination ?? null, description: record.description ?? null, reuseStatus: record.reuseStatus, rightsLabel: record.rightsLabel ?? null, rightsUrl: record.rightsUrl ?? null, attribution: record.attribution ?? null, sourcePayload: record.sourcePayload, sourceRetrievedAt: new Date() } });
+    const staged = await db.select({ id: externalStampRecords.id }).from(externalStampRecords).where(and(eq(externalStampRecords.provider, provider), eq(externalStampRecords.sourceRecordId, record.sourceRecordId))).limit(1);
+    const stagedRecord = staged[0];
+    if (!stagedRecord) continue;
+    stagedCount += 1;
+    for (const asset of record.assets) await db.insert(externalStampAssets).values({ externalStampRecordId: stagedRecord.id, providerAssetId: asset.providerAssetId, mediaUrl: asset.mediaUrl, previewUrl: asset.previewUrl ?? null, mimeType: asset.mimeType ?? null, creator: asset.creator ?? null, attribution: asset.attribution ?? null, rightsLabel: asset.rightsLabel ?? null, rightsUrl: asset.rightsUrl ?? null, reuseStatus: asset.reuseStatus }).onDuplicateKeyUpdate({ set: { mediaUrl: asset.mediaUrl, previewUrl: asset.previewUrl ?? null, mimeType: asset.mimeType ?? null, creator: asset.creator ?? null, attribution: asset.attribution ?? null, rightsLabel: asset.rightsLabel ?? null, rightsUrl: asset.rightsUrl ?? null, reuseStatus: asset.reuseStatus, sourceRetrievedAt: new Date() } });
+  }
+  await db.update(externalImportJobs).set({ status: "completed", stagedCount, completedAt: new Date() }).where(eq(externalImportJobs.id, importJobId));
+  return { importJobId, receivedCount: records.length, stagedCount };
+}
+
+export async function listExternalStampRecords(reviewStatus?: "pending" | "approved" | "rejected") {
+  const db = await getDb();
+  if (!db) return [];
+  const query = db.select().from(externalStampRecords).orderBy(desc(externalStampRecords.updatedAt));
+  return reviewStatus ? query.where(eq(externalStampRecords.reviewStatus, reviewStatus)) : query;
+}
+
+export async function reviewExternalStampRecord(reviewerUserId: number, recordId: number, reviewStatus: "approved" | "rejected", reviewNote: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  await db.update(externalStampRecords).set({ reviewStatus, reviewNote, reviewedByUserId: reviewerUserId, reviewedAt: new Date() }).where(eq(externalStampRecords.id, recordId));
+  return listExternalStampRecords();
+}
+
+function publishableSlug(title: string, sourceRecordId: string) {
+  const normalized = title.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 140);
+  const suffix = sourceRecordId.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(-30) || "record";
+  return `${normalized || "external-stamp"}-${suffix}`.slice(0, 180);
+}
+
+export async function publishExternalStampRecord(publisherUserId: number, recordId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const record = await db.select().from(externalStampRecords).where(and(eq(externalStampRecords.id, recordId), eq(externalStampRecords.reviewStatus, "approved"))).limit(1);
+  const approved = record[0];
+  if (!approved) throw new Error("Only approved external records can be published");
+  if (!["public_domain", "cc_by", "permission_granted"].includes(approved.reuseStatus)) throw new Error("The record lacks a publishable rights status");
+  const slug = publishableSlug(approved.title, approved.sourceRecordId);
+  await db.insert(publishedExternalStamps).values({ externalStampRecordId: approved.id, slug, publishedByUserId: publisherUserId }).onDuplicateKeyUpdate({ set: { slug, publishedByUserId: publisherUserId, publishedAt: new Date() } });
+  return { slug, externalStampRecordId: approved.id };
+}
+
+export async function listPublishedExternalStamps() {
+  const db = await getDb();
+  if (!db) return [];
+  const records = await db.select({ id: publishedExternalStamps.id, externalStampRecordId: publishedExternalStamps.externalStampRecordId, slug: publishedExternalStamps.slug, publishedAt: publishedExternalStamps.publishedAt, sourceRecordId: externalStampRecords.sourceRecordId, provider: externalStampRecords.provider, canonicalUrl: externalStampRecords.canonicalUrl, title: externalStampRecords.title, country: externalStampRecords.country, issueDate: externalStampRecords.issueDate, denomination: externalStampRecords.denomination, description: externalStampRecords.description, reuseStatus: externalStampRecords.reuseStatus, rightsLabel: externalStampRecords.rightsLabel, rightsUrl: externalStampRecords.rightsUrl, attribution: externalStampRecords.attribution }).from(publishedExternalStamps).innerJoin(externalStampRecords, eq(publishedExternalStamps.externalStampRecordId, externalStampRecords.id)).where(eq(externalStampRecords.reviewStatus, "approved")).orderBy(desc(publishedExternalStamps.publishedAt));
+  if (!records.length) return [];
+  const assets = await db.select().from(externalStampAssets).where(inArray(externalStampAssets.externalStampRecordId, records.map((record) => record.externalStampRecordId)));
+  return records.map((record) => ({ ...record, assets: assets.filter((asset) => asset.externalStampRecordId === record.externalStampRecordId) }));
 }
