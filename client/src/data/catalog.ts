@@ -33,6 +33,12 @@ export type Stamp = {
   valueEvidence: Array<{ condition: "Mint" | "Used" | "FDC"; source: string; observedAt: string; observation: string }>;
   sourceCredit: string;
   sourceUrl: string;
+  provenance: {
+    provider: "Wikimedia Commons" | "Smithsonian" | "Public-domain archive";
+    rightsLabel: string;
+    attribution: string;
+    publishStatus: "Seeded verified" | "Approved import";
+  };
   isSeededMock: true;
 };
 
@@ -42,12 +48,16 @@ const imageSet = [
     alt: "Official 1934 United States National Park Service commemorative stamp issue",
     credit: "Chris Light scan; underlying U.S. Post Office design, public domain in the United States",
     url: "https://commons.wikimedia.org/wiki/File:USPS_National_Park_Service_1934.jpg",
+    provider: "Wikimedia Commons",
+    rightsLabel: "Public domain",
   },
   {
     src: "/manus-storage/usps-two-cent-reds-1926_3e7f9d63.jpg",
     alt: "Official 1926 United States two-cent Sesquicentennial commemorative stamps",
     credit: "U.S. Post Office / Bureau of Engraving and Printing, public domain in the United States",
     url: "https://commons.wikimedia.org/wiki/File:Two_Cent_Reds_of_1926-1930.jpg",
+    provider: "Wikimedia Commons",
+    rightsLabel: "Public domain",
   },
 ] as const;
 
@@ -141,6 +151,12 @@ export const stamps: Stamp[] = records.map((record, index) => {
     ],
     sourceCredit: image.credit,
     sourceUrl: image.url,
+    provenance: {
+      provider: image.provider,
+      rightsLabel: image.rightsLabel,
+      attribution: image.credit,
+      publishStatus: "Seeded verified",
+    },
     isSeededMock: true,
   };
 });

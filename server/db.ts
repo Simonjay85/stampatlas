@@ -2,6 +2,7 @@ import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { albums, albumItems, collectionItems, externalImportJobs, externalStampAssets, externalStampRecords, InsertUser, publishedExternalStamps, users } from "../drizzle/schema";
 import { ENV } from "./_core/env";
+import { classifyImportedStamp } from "./importers/classify";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -166,7 +167,8 @@ export async function stageExternalStampRecords(requestedByUserId: number, provi
   const importJobId = Number(created[0].insertId);
   let stagedCount = 0;
   for (const record of records) {
-    await db.insert(externalStampRecords).values({ importJobId, provider, sourceRecordId: record.sourceRecordId, canonicalUrl: record.canonicalUrl, title: record.title, country: record.country ?? null, issueDate: record.issueDate ?? null, denomination: record.denomination ?? null, description: record.description ?? null, reuseStatus: record.reuseStatus, rightsLabel: record.rightsLabel ?? null, rightsUrl: record.rightsUrl ?? null, attribution: record.attribution ?? null, sourcePayload: record.sourcePayload }).onDuplicateKeyUpdate({ set: { importJobId, canonicalUrl: record.canonicalUrl, title: record.title, country: record.country ?? null, issueDate: record.issueDate ?? null, denomination: record.denomination ?? null, description: record.description ?? null, reuseStatus: record.reuseStatus, rightsLabel: record.rightsLabel ?? null, rightsUrl: record.rightsUrl ?? null, attribution: record.attribution ?? null, sourcePayload: record.sourcePayload, sourceRetrievedAt: new Date() } });
+    const classification = classifyImportedStamp(record);
+    await db.insert(externalStampRecords).values({ importJobId, provider, sourceRecordId: record.sourceRecordId, canonicalUrl: record.canonicalUrl, title: record.title, country: record.country ?? null, normalizedCountry: classification.normalizedCountry, issueDate: record.issueDate ?? null, eraDecade: classification.eraDecade, classificationMethod: classification.classificationMethod, classificationConfidence: classification.classificationConfidence, denomination: record.denomination ?? null, description: record.description ?? null, reuseStatus: record.reuseStatus, rightsLabel: record.rightsLabel ?? null, rightsUrl: record.rightsUrl ?? null, attribution: record.attribution ?? null, sourcePayload: record.sourcePayload }).onDuplicateKeyUpdate({ set: { importJobId, canonicalUrl: record.canonicalUrl, title: record.title, country: record.country ?? null, normalizedCountry: classification.normalizedCountry, issueDate: record.issueDate ?? null, eraDecade: classification.eraDecade, classificationMethod: classification.classificationMethod, classificationConfidence: classification.classificationConfidence, denomination: record.denomination ?? null, description: record.description ?? null, reuseStatus: record.reuseStatus, rightsLabel: record.rightsLabel ?? null, rightsUrl: record.rightsUrl ?? null, attribution: record.attribution ?? null, sourcePayload: record.sourcePayload, sourceRetrievedAt: new Date() } });
     const staged = await db.select({ id: externalStampRecords.id }).from(externalStampRecords).where(and(eq(externalStampRecords.provider, provider), eq(externalStampRecords.sourceRecordId, record.sourceRecordId))).limit(1);
     const stagedRecord = staged[0];
     if (!stagedRecord) continue;
@@ -181,7 +183,10 @@ export async function listExternalStampRecords(reviewStatus?: "pending" | "appro
   const db = await getDb();
   if (!db) return [];
   const query = db.select().from(externalStampRecords).orderBy(desc(externalStampRecords.updatedAt));
-  return reviewStatus ? query.where(eq(externalStampRecords.reviewStatus, reviewStatus)) : query;
+  const records = reviewStatus ? await query.where(eq(externalStampRecords.reviewStatus, reviewStatus)) : await query;
+  if (!records.length) return [];
+  const assets = await db.select().from(externalStampAssets).where(inArray(externalStampAssets.externalStampRecordId, records.map((record) => record.id)));
+  return records.map((record) => ({ ...record, assets: assets.filter((asset) => asset.externalStampRecordId === record.id) }));
 }
 
 export async function reviewExternalStampRecord(reviewerUserId: number, recordId: number, reviewStatus: "approved" | "rejected", reviewNote: string) {

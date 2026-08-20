@@ -25,4 +25,9 @@ describe("stamp catalogue seed", () => {
     expect(getPublicAlbum("elena", "modern-icons")?.stampSlugs).toContain("flag-over-capitol");
     expect(getPublicAlbum("unknown", "modern-icons")).toBeUndefined();
   });
+
+  it("provides provider, rights, attribution, and publish status for featured-card provenance detail", () => {
+    const featured = stamps.slice(0, 4);
+    expect(featured.every((stamp) => stamp.provenance.provider && stamp.provenance.rightsLabel && stamp.provenance.attribution && stamp.provenance.publishStatus)).toBe(true);
+  });
 });

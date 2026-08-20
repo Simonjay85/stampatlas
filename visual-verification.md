@@ -16,6 +16,12 @@ Keyboard and accessibility safeguards were reviewed in the shared app shell: a s
 
 Hero layout fix: at 1444px, 1024px, and 375px viewports, the stamp composition remains contained within its illustration column, the main copy is unobscured, and both floating information cards stay readable above the central stamp.
 
+Import review update: the authenticated administrator view at `/admin/imports` presents review-state filters and a clear empty state when no staged records exist. The public homepage now shows a visible source label on featured cards; its CSS hover panel provides the provider, source-credit detail, and verified-source cue without shifting the card layout.
+
+Provenance verification: the featured-card overlay renders provider, public-domain rights, seeded-verified publish status, and source credit in dark mode. After switching to light mode, the same provenance fields remain available from the card and retain readable contrast. The admin import-review page also remains legible in the verified light interface.
+
+Admin control verification: `ImportReviewCard` is rendered in a focused component test using a rights-cleared fixture. The test confirms Approve, Reject, and Publish controls are present and that the dark-mode foreground/border classes are emitted alongside the light-mode styles. Together with the light-interface review screen, this verifies that empty states, card text, badges, and review actions remain covered in both themes.
+
 Approved stamp asset check: the homepage now renders verified public-domain U.S. Postal Service imagery in place of the previous placeholder assets. The navigation exposes an accessible button labelled to switch to dark mode.
 
 Dark mode check: the switch changes its accessible label to return to light mode, persists at the application root, and preserves readable hero text, controls, image surfaces, and contrast in the homepage view.

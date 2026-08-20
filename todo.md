@@ -36,3 +36,11 @@
 - [x] Kiểm thử schema, adapter và luồng duyệt dữ liệu nhập.
 - [x] Triển khai publish bản ghi tem nguồn ngoài đã được duyệt vào mô hình catalogue công khai với quyền truy cập quản trị.
 - [x] Thêm kiểm thử tích hợp cho luồng stage, lưu asset, review và publish dữ liệu tem nhập.
+- [x] Tự động suy luận và lưu quốc gia, niên đại cho bản ghi tem nguồn ngoài để hỗ trợ lọc/tìm kiếm.
+- [x] Tạo giao diện admin xem xét, phê duyệt, từ chối và publish tem nhập trước khi hiển thị công khai.
+- [x] Cập nhật trang chủ để hiển thị rõ nguồn Wikimedia/Smithsonian và hover detail về quyền, attribution, trạng thái duyệt.
+- [x] Kiểm thử giao diện admin, phân loại metadata và hiển thị provenance ở light/dark mode.
+- [x] Hiển thị rõ provider, quyền hoặc licence, attribution và trạng thái publish trong hover detail của tem nổi bật trên trang chủ.
+- [x] Kiểm tra và ghi nhận giao diện admin imports cùng provenance hover ở cả light và dark mode.
+- [x] Bổ sung kiểm thử tập trung xác nhận dữ liệu provenance được render trên thẻ tem trang chủ.
+- [x] Xác minh `/admin/imports` ở cả light và dark mode, bao gồm tương phản và action controls.

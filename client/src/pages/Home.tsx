@@ -1,5 +1,6 @@
 import AppShell from "@/components/AppShell";
 import { StampVisual } from "@/components/StampVisual";
+import { FeaturedStampCard } from "@/components/FeaturedStampCard";
 import { featuredStamps, stamps } from "@/data/catalog";
 import { ArrowRight, CheckCircle2, Layers3, Search, Sparkles } from "lucide-react";
 import { Link } from "wouter";
@@ -55,7 +56,7 @@ export default function Home() {
             <p className="max-w-2xl text-base leading-7 text-[#52675d]">Use the public catalogue to move between countries, decades, and subjects. Every demo record has an image credit, identifying characteristics, and a carefully labelled evidence panel.</p>
           </div>
           <div className="mt-10 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            {featuredStamps.map((stamp, index) => <Link key={stamp.id} href={`/stamps/${stamp.slug}`} className="catalogue-card group"><div className="relative grid aspect-[.98] place-items-center overflow-hidden bg-[#e6ebe2] p-7"><StampVisual stamp={stamp} className="h-[210px] w-[165px] transition duration-300 group-hover:-translate-y-2 group-hover:rotate-[-2deg] group-hover:shadow-xl" /><span className="absolute left-4 top-4 rounded-full bg-white/85 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[.13em] text-[#3d584c]">0{index + 1}</span></div><div className="p-5"><div className="flex justify-between gap-3 text-xs font-semibold uppercase tracking-[.11em] text-[#718178]"><span>{stamp.country}</span><span>{stamp.year}</span></div><h3 className="mt-2 font-display text-xl font-semibold tracking-[-.03em]">{stamp.title}</h3><p className="mt-3 text-sm text-[#63756a]">Mint estimate <span className="font-semibold text-[#274b3d]">${stamp.value.mint[0]}–${stamp.value.mint[1]}</span></p></div></Link>)}
+            {featuredStamps.map((stamp, index) => <Link key={stamp.id} href={`/stamps/${stamp.slug}`}><FeaturedStampCard stamp={stamp} index={index} /></Link>)}
           </div>
           <div className="mt-10 text-center"><Link href="/explore" className="inline-flex items-center gap-2 text-sm font-semibold text-[#21493b] underline decoration-[#aac4b2] underline-offset-4 hover:decoration-[#21493b]">Browse all {stamps.length} demo records <ArrowRight size={15} /></Link></div>
         </section>

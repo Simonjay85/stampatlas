@@ -14,6 +14,7 @@ const PublicCollection = lazy(() => import("./pages/PublicCollection"));
 const StampDetail = lazy(() => import("./pages/StampDetail"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Albums = lazy(() => import("./pages/Albums"));
+const AdminImports = lazy(() => import("./pages/AdminImports"));
 
 function ComingSoon() {
   return <Home />;
@@ -27,6 +28,7 @@ function Router() {
       <Route path="/identify" component={Identify} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/albums" component={Albums} />
+      <Route path="/admin/imports" component={AdminImports} />
       <Route path="/collections/:username/:collectionSlug" component={PublicCollection} />
       <Route path="/collections/:username" component={PublicCollection} />
       <Route path="/404" component={NotFound} />
