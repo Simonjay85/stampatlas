@@ -1,6 +1,6 @@
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, like, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { albums, albumItems, collectionItems, externalImportJobs, externalStampAssets, externalStampMetadataHistory, externalStampRecords, InsertUser, momentCollectionItems, momentCollections, momentMedia, momentTagAssignments, momentTags, moments, publishedExternalStamps, users } from "../drizzle/schema";
+import { albums, albumItems, collectionItems, collectorProfiles, externalImportJobs, externalStampAssets, externalStampMetadataHistory, externalStampRecords, identificationScans, InsertUser, momentCollectionItems, momentCollections, momentMedia, momentTagAssignments, momentTags, moments, publishedExternalStamps, users } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 import { classifyImportedStamp } from "./importers/classify";
 
@@ -42,19 +42,21 @@ export async function getUserByOpenId(openId: string) {
 }
 
 export type CollectionCondition = "Mint" | "Fine used" | "Used" | "FDC";
-export type CollectionItemInput = { stampSlug: string; condition: CollectionCondition; purchasePrice: number; acquiredAt: string; notes: string };
-export type AlbumInput = { name: string; description: string; coverStampSlug: string };
+export type CollectionStatus = "owned" | "wishlist" | "duplicate" | "swap";
+export type CollectionGrade = "superb" | "very_fine" | "fine" | "average" | "damaged" | "ungraded";
+export type CollectionItemInput = { stampSlug: string; condition: CollectionCondition; quantity: number; collectionStatus: CollectionStatus; grade: CollectionGrade; purchasePrice: number; acquiredAt: string; acquisitionSource?: string | null; storageLocation?: string | null; albumPage?: number | null; customTags: string[]; frontImageUrl?: string | null; backImageUrl?: string | null; notes: string };
+export type AlbumInput = { name: string; description: string; coverStampSlug: string; visibility: "private" | "public" };
 export type ReuseStatus = "public_domain" | "cc_by" | "permission_granted" | "metadata_only" | "needs_review" | "blocked";
 export type ImportedAssetInput = { providerAssetId: string; mediaUrl: string; previewUrl?: string | null; mimeType?: string | null; creator?: string | null; attribution?: string | null; rightsLabel?: string | null; rightsUrl?: string | null; reuseStatus: ReuseStatus };
 export type ImportedStampInput = { sourceRecordId: string; canonicalUrl: string; title: string; country?: string | null; issueDate?: string | null; denomination?: string | null; description?: string | null; reuseStatus: ReuseStatus; rightsLabel?: string | null; rightsUrl?: string | null; attribution?: string | null; sourcePayload: string; assets: ImportedAssetInput[] };
 
 const demoItems: CollectionItemInput[] = [
-  { stampSlug: "flag-over-capitol", condition: "Mint", purchasePrice: 18, acquiredAt: "2026-08-12", notes: "Crisp margins; acquired from a local club exchange." },
-  { stampSlug: "paper-crane", condition: "Fine used", purchasePrice: 12, acquiredAt: "2026-08-08", notes: "Light cancellation, strong colour." },
-  { stampSlug: "coral-reef", condition: "Mint", purchasePrice: 24, acquiredAt: "2026-07-30", notes: "Part of a small topical grouping." },
-  { stampSlug: "maple-message", condition: "Used", purchasePrice: 7, acquiredAt: "2026-07-19", notes: "A favourite Canadian design study." },
-  { stampSlug: "garden-orchid", condition: "Mint", purchasePrice: 29, acquiredAt: "2026-07-11", notes: "Clean example from the botanical album." },
-  { stampSlug: "northern-pine", condition: "Fine used", purchasePrice: 8, acquiredAt: "2026-06-28", notes: "Visible circular cancel." },
+  { stampSlug: "flag-over-capitol", condition: "Mint", quantity: 1, collectionStatus: "owned", grade: "ungraded", customTags: [], purchasePrice: 18, acquiredAt: "2026-08-12", notes: "Crisp margins; acquired from a local club exchange." },
+  { stampSlug: "paper-crane", condition: "Fine used", quantity: 1, collectionStatus: "owned", grade: "ungraded", customTags: [], purchasePrice: 12, acquiredAt: "2026-08-08", notes: "Light cancellation, strong colour." },
+  { stampSlug: "coral-reef", condition: "Mint", quantity: 1, collectionStatus: "owned", grade: "ungraded", customTags: [], purchasePrice: 24, acquiredAt: "2026-07-30", notes: "Part of a small topical grouping." },
+  { stampSlug: "maple-message", condition: "Used", quantity: 1, collectionStatus: "owned", grade: "ungraded", customTags: [], purchasePrice: 7, acquiredAt: "2026-07-19", notes: "A favourite Canadian design study." },
+  { stampSlug: "garden-orchid", condition: "Mint", quantity: 1, collectionStatus: "owned", grade: "ungraded", customTags: [], purchasePrice: 29, acquiredAt: "2026-07-11", notes: "Clean example from the botanical album." },
+  { stampSlug: "northern-pine", condition: "Fine used", quantity: 1, collectionStatus: "owned", grade: "ungraded", customTags: [], purchasePrice: 8, acquiredAt: "2026-06-28", notes: "Visible circular cancel." },
 ];
 
 async function ensureDemoCollection(userId: number) {
@@ -89,7 +91,7 @@ export async function listCollectionItems(userId: number) {
 export async function createCollectionItem(userId: number, input: CollectionItemInput) {
   const db = await getDb();
   if (!db) throw new Error("Database unavailable");
-  await db.insert(collectionItems).values({ userId, stampSlug: input.stampSlug, condition: input.condition, purchasePrice: String(input.purchasePrice), acquiredAt: new Date(`${input.acquiredAt}T00:00:00.000Z`), notes: input.notes });
+  await db.insert(collectionItems).values({ userId, stampSlug: input.stampSlug, condition: input.condition, quantity: input.quantity, collectionStatus: input.collectionStatus, grade: input.grade, purchasePrice: String(input.purchasePrice), acquiredAt: new Date(`${input.acquiredAt}T00:00:00.000Z`), acquisitionSource: input.acquisitionSource ?? null, storageLocation: input.storageLocation ?? null, albumPage: input.albumPage ?? null, customTags: JSON.stringify(input.customTags), frontImageUrl: input.frontImageUrl ?? null, backImageUrl: input.backImageUrl ?? null, notes: input.notes });
   return listCollectionItems(userId);
 }
 
@@ -99,6 +101,7 @@ export async function updateCollectionItem(userId: number, itemId: number, patch
   const values: Record<string, unknown> = { ...patch };
   if (patch.purchasePrice !== undefined) values.purchasePrice = String(patch.purchasePrice);
   if (patch.acquiredAt !== undefined) values.acquiredAt = new Date(`${patch.acquiredAt}T00:00:00.000Z`);
+  if (patch.customTags !== undefined) values.customTags = JSON.stringify(patch.customTags);
   await db.update(collectionItems).set(values).where(and(eq(collectionItems.id, itemId), eq(collectionItems.userId, userId)));
   return listCollectionItems(userId);
 }
@@ -108,6 +111,33 @@ export async function deleteCollectionItem(userId: number, itemId: number) {
   if (!db) throw new Error("Database unavailable");
   await db.delete(collectionItems).where(and(eq(collectionItems.id, itemId), eq(collectionItems.userId, userId)));
   return listCollectionItems(userId);
+}
+
+export async function getCollectionItemForUser(userId: number, itemId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const item = await db.select({ id: collectionItems.id }).from(collectionItems).where(and(eq(collectionItems.id, itemId), eq(collectionItems.userId, userId))).limit(1);
+  if (!item[0]) throw new Error("Collection item unavailable");
+  return item[0];
+}
+
+export async function importCollectionItems(userId: number, input: CollectionItemInput[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const existing = await db.select({ stampSlug: collectionItems.stampSlug }).from(collectionItems).where(eq(collectionItems.userId, userId));
+  const known = new Set(existing.map((item) => item.stampSlug));
+  const created: string[] = []; const skipped: string[] = [];
+  for (const item of input) {
+    if (known.has(item.stampSlug)) { skipped.push(item.stampSlug); continue; }
+    await db.insert(collectionItems).values({ userId, stampSlug: item.stampSlug, condition: item.condition, quantity: item.quantity, collectionStatus: item.collectionStatus, grade: item.grade, purchasePrice: String(item.purchasePrice), acquiredAt: new Date(`${item.acquiredAt}T00:00:00.000Z`), acquisitionSource: item.acquisitionSource ?? null, storageLocation: item.storageLocation ?? null, albumPage: item.albumPage ?? null, customTags: JSON.stringify(item.customTags), frontImageUrl: item.frontImageUrl ?? null, backImageUrl: item.backImageUrl ?? null, notes: item.notes });
+    known.add(item.stampSlug); created.push(item.stampSlug);
+  }
+  return { createdCount: created.length, skippedCount: skipped.length, created, skipped };
+}
+
+export async function getCollectionBackup(userId: number) {
+  const [items, albumData] = await Promise.all([listCollectionItems(userId), listAlbums(userId)]);
+  return { format: "stampatlas-collection-backup", version: 1, exportedAt: new Date().toISOString(), items, albums: albumData.albums, assignments: albumData.assignments };
 }
 
 export async function listAlbums(userId: number) {
@@ -238,6 +268,37 @@ export async function updateUserRole(userId: number, role: "user" | "reviewer" |
   return updated[0];
 }
 
+function profileUsername(name: string | null, userId: number) { return `${(name || "collector").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "collector"}-${userId}`; }
+export async function getCollectorProfile(userId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const existing = await db.select().from(collectorProfiles).where(eq(collectorProfiles.userId, userId)).limit(1);
+  if (existing[0]) return existing[0];
+  const user = await db.select({ name: users.name }).from(users).where(eq(users.id, userId)).limit(1);
+  await db.insert(collectorProfiles).values({ userId, username: profileUsername(user[0]?.name ?? null, userId), displayName: user[0]?.name || "Collector", isPublic: false });
+  return (await db.select().from(collectorProfiles).where(eq(collectorProfiles.userId, userId)).limit(1))[0] ?? null;
+}
+export async function updateCollectorProfile(userId: number, input: { username: string; displayName: string; bio?: string | null; avatarUrl?: string | null; isPublic: boolean }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  await getCollectorProfile(userId);
+  await db.update(collectorProfiles).set(input).where(eq(collectorProfiles.userId, userId));
+  return getCollectorProfile(userId);
+}
+export async function getPublicCollectorProfile(username: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const profile = await db.select().from(collectorProfiles).where(and(eq(collectorProfiles.username, username), eq(collectorProfiles.isPublic, true))).limit(1);
+  if (!profile[0]) return null;
+  const publicAlbums = await db.select().from(albums).where(and(eq(albums.userId, profile[0].userId), eq(albums.visibility, "public"))).orderBy(desc(albums.updatedAt));
+  const albumIds = publicAlbums.map((album) => album.id);
+  if (!albumIds.length) return { profile: profile[0], albums: [], assignments: [], items: [] };
+  const assignments = await db.select({ albumId: albumItems.albumId, collectionItemId: albumItems.collectionItemId, position: albumItems.position }).from(albumItems).where(inArray(albumItems.albumId, albumIds)).orderBy(asc(albumItems.position));
+  const itemIds = assignments.map((assignment) => assignment.collectionItemId);
+  const items = itemIds.length ? await db.select({ id: collectionItems.id, stampSlug: collectionItems.stampSlug, condition: collectionItems.condition, quantity: collectionItems.quantity, grade: collectionItems.grade, frontImageUrl: collectionItems.frontImageUrl, backImageUrl: collectionItems.backImageUrl }).from(collectionItems).where(inArray(collectionItems.id, itemIds)) : [];
+  return { profile: profile[0], albums: publicAlbums, assignments, items };
+}
+
 export async function getPendingExternalImportSummary() {
   const pending = await listExternalStampRecords({ reviewStatus: "pending" });
   return {
@@ -264,10 +325,49 @@ export async function publishExternalStampRecord(publisherUserId: number, record
   return { slug, externalStampRecordId: approved.id };
 }
 
-export async function listPublishedExternalStamps() {
+export type PublicExternalCatalogueFilter = { query?: string; country?: string; decade?: string; provider?: "wikimedia_commons" | "smithsonian"; page?: number; offset?: number; limit?: number };
+
+export async function queryPublishedExternalStamps(filters: PublicExternalCatalogueFilter = {}) {
   const db = await getDb();
-  if (!db) return [];
-  const records = await db.select({ id: publishedExternalStamps.id, externalStampRecordId: publishedExternalStamps.externalStampRecordId, slug: publishedExternalStamps.slug, publishedAt: publishedExternalStamps.publishedAt, sourceRecordId: externalStampRecords.sourceRecordId, provider: externalStampRecords.provider, canonicalUrl: externalStampRecords.canonicalUrl, title: externalStampRecords.title, country: externalStampRecords.country, issueDate: externalStampRecords.issueDate, denomination: externalStampRecords.denomination, description: externalStampRecords.description, reuseStatus: externalStampRecords.reuseStatus, rightsLabel: externalStampRecords.rightsLabel, rightsUrl: externalStampRecords.rightsUrl, attribution: externalStampRecords.attribution }).from(publishedExternalStamps).innerJoin(externalStampRecords, eq(publishedExternalStamps.externalStampRecordId, externalStampRecords.id)).where(eq(externalStampRecords.reviewStatus, "approved")).orderBy(desc(publishedExternalStamps.publishedAt));
+  if (!db) return { items: [], nextPage: null, nextOffset: null };
+  const page = Math.max(0, filters.page ?? 0);
+  const limit = Math.min(48, Math.max(1, filters.limit ?? 24));
+  const offset = Math.max(0, filters.offset ?? page * limit);
+  const query = filters.query?.trim();
+  const conditions = [
+    eq(externalStampRecords.reviewStatus, "approved"),
+    filters.provider ? eq(externalStampRecords.provider, filters.provider) : undefined,
+    filters.country ? or(eq(externalStampRecords.normalizedCountry, filters.country), eq(externalStampRecords.country, filters.country)) : undefined,
+    filters.decade ? eq(externalStampRecords.eraDecade, filters.decade) : undefined,
+    query ? or(like(externalStampRecords.title, `%${query}%`), like(externalStampRecords.country, `%${query}%`), like(externalStampRecords.normalizedCountry, `%${query}%`), like(externalStampRecords.issueDate, `%${query}%`)) : undefined,
+  ].filter(Boolean);
+  const records = await db.select({ id: publishedExternalStamps.id, externalStampRecordId: publishedExternalStamps.externalStampRecordId, slug: publishedExternalStamps.slug, publishedAt: publishedExternalStamps.publishedAt, sourceRecordId: externalStampRecords.sourceRecordId, provider: externalStampRecords.provider, canonicalUrl: externalStampRecords.canonicalUrl, title: externalStampRecords.title, country: externalStampRecords.country, normalizedCountry: externalStampRecords.normalizedCountry, issueDate: externalStampRecords.issueDate, eraDecade: externalStampRecords.eraDecade, denomination: externalStampRecords.denomination, description: externalStampRecords.description, reuseStatus: externalStampRecords.reuseStatus, rightsLabel: externalStampRecords.rightsLabel, rightsUrl: externalStampRecords.rightsUrl, attribution: externalStampRecords.attribution }).from(publishedExternalStamps).innerJoin(externalStampRecords, eq(publishedExternalStamps.externalStampRecordId, externalStampRecords.id)).where(and(...conditions)).orderBy(desc(publishedExternalStamps.publishedAt)).limit(limit + 1).offset(offset);
+  if (!records.length) return { items: [], nextPage: null, nextOffset: null };
+  const pageRecords = records.slice(0, limit);
+  const assets = await db.select().from(externalStampAssets).where(inArray(externalStampAssets.externalStampRecordId, pageRecords.map((record) => record.externalStampRecordId)));
+  const hasNext = records.length > limit;
+  return { items: pageRecords.map((record) => ({ ...record, assets: assets.filter((asset) => asset.externalStampRecordId === record.externalStampRecordId) })), nextPage: hasNext ? Math.floor((offset + limit) / limit) : null, nextOffset: hasNext ? offset + limit : null };
+}
+
+export async function listPublishedExternalStamps() {
+  return (await queryPublishedExternalStamps({ limit: 48 })).items;
+}
+
+export async function getPublishedExternalStampBySlug(slug: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const records = await db.select({ id: publishedExternalStamps.id, externalStampRecordId: publishedExternalStamps.externalStampRecordId, slug: publishedExternalStamps.slug, provider: externalStampRecords.provider, canonicalUrl: externalStampRecords.canonicalUrl, title: externalStampRecords.title, country: externalStampRecords.country, normalizedCountry: externalStampRecords.normalizedCountry, issueDate: externalStampRecords.issueDate, eraDecade: externalStampRecords.eraDecade, denomination: externalStampRecords.denomination, description: externalStampRecords.description, rightsLabel: externalStampRecords.rightsLabel, attribution: externalStampRecords.attribution }).from(publishedExternalStamps).innerJoin(externalStampRecords, eq(publishedExternalStamps.externalStampRecordId, externalStampRecords.id)).where(and(eq(publishedExternalStamps.slug, slug), eq(externalStampRecords.reviewStatus, "approved"))).limit(1);
+  const record = records[0];
+  if (!record) return null;
+  const assets = await db.select().from(externalStampAssets).where(eq(externalStampAssets.externalStampRecordId, record.externalStampRecordId));
+  return { ...record, assets };
+}
+
+export async function getPublishedExternalStampsBySlugs(slugs: string[]) {
+  const uniqueSlugs = Array.from(new Set(slugs)).slice(0, 500);
+  const db = await getDb();
+  if (!db || !uniqueSlugs.length) return [];
+  const records = await db.select({ id: publishedExternalStamps.id, externalStampRecordId: publishedExternalStamps.externalStampRecordId, slug: publishedExternalStamps.slug, provider: externalStampRecords.provider, canonicalUrl: externalStampRecords.canonicalUrl, title: externalStampRecords.title, country: externalStampRecords.country, normalizedCountry: externalStampRecords.normalizedCountry, issueDate: externalStampRecords.issueDate, eraDecade: externalStampRecords.eraDecade, denomination: externalStampRecords.denomination, description: externalStampRecords.description, rightsLabel: externalStampRecords.rightsLabel, attribution: externalStampRecords.attribution }).from(publishedExternalStamps).innerJoin(externalStampRecords, eq(publishedExternalStamps.externalStampRecordId, externalStampRecords.id)).where(and(inArray(publishedExternalStamps.slug, uniqueSlugs), eq(externalStampRecords.reviewStatus, "approved")));
   if (!records.length) return [];
   const assets = await db.select().from(externalStampAssets).where(inArray(externalStampAssets.externalStampRecordId, records.map((record) => record.externalStampRecordId)));
   return records.map((record) => ({ ...record, assets: assets.filter((asset) => asset.externalStampRecordId === record.externalStampRecordId) }));
@@ -276,6 +376,31 @@ export async function listPublishedExternalStamps() {
 export type MomentMediaInput = { storageKey: string; mediaUrl: string; mimeType: string; caption?: string | null };
 export type MomentCreateInput = { title: string; note: string; occurredAt: Date; locationLabel?: string | null; mood?: string | null; visibility: "private" | "shared_link"; isFavorite: boolean; tags: string[]; media: MomentMediaInput[] };
 export type MomentUpdateInput = Partial<Omit<MomentCreateInput, "media">>;
+export type IdentificationScanInput = { topCandidateSlug?: string | null; candidateSlugs: string[]; status: "reviewed" | "needs_research" | "dismissed"; note?: string | null };
+
+export async function listIdentificationScans(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(identificationScans).where(eq(identificationScans.userId, userId)).orderBy(desc(identificationScans.createdAt)).limit(100);
+}
+export async function createIdentificationScan(userId: number, input: IdentificationScanInput) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  await db.insert(identificationScans).values({ userId, topCandidateSlug: input.topCandidateSlug ?? null, candidateSlugs: JSON.stringify(Array.from(new Set(input.candidateSlugs)).slice(0, 12)), status: input.status, note: input.note ?? null });
+  return listIdentificationScans(userId);
+}
+export async function updateIdentificationScan(userId: number, id: number, patch: Partial<Pick<IdentificationScanInput, "status" | "note">>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  await db.update(identificationScans).set(patch).where(and(eq(identificationScans.id, id), eq(identificationScans.userId, userId)));
+  return listIdentificationScans(userId);
+}
+export async function deleteIdentificationScan(userId: number, id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  await db.delete(identificationScans).where(and(eq(identificationScans.id, id), eq(identificationScans.userId, userId)));
+  return listIdentificationScans(userId);
+}
 
 export async function listMoments(userId: number, filters?: { favoriteOnly?: boolean; tagId?: number }) {
   const db = await getDb();

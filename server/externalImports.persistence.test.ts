@@ -45,5 +45,18 @@ describe("external import persistence pipeline", () => {
     const visible = catalogue.find((candidate) => candidate.sourceRecordId === sourceRecordId);
     expect(visible?.assets).toHaveLength(1);
     expect(visible?.reuseStatus).toBe("public_domain");
+    const unified = await caller.catalogue.list({ query: "Pipeline Test Stamp", country: "Editorial Turkey", decade: "1910s" });
+    expect(unified.items).toHaveLength(1);
+    expect(unified.items[0]).toMatchObject({ slug: published.slug, origin: "external", provenance: { provider: "Wikimedia Commons", rightsLabel: "Public domain", publishStatus: "Approved import" } });
+    expect(await caller.catalogue.bySlug({ slug: published.slug })).toMatchObject({ slug: published.slug, origin: "external" });
+    expect(await caller.catalogue.bySlugs({ slugs: [published.slug, "flag-over-capitol"] })).toEqual(expect.arrayContaining([
+      expect.objectContaining({ slug: published.slug, origin: "external" }),
+      expect.objectContaining({ slug: "flag-over-capitol", origin: "seeded" }),
+    ]));
+    const secondPage = await caller.catalogue.list({ page: 1, limit: 24 });
+    expect(secondPage.items).toHaveLength(17);
+    expect(secondPage.items.slice(0, 16).every((item) => item.origin === "seeded")).toBe(true);
+    expect(secondPage.items[16]).toMatchObject({ slug: published.slug, origin: "external" });
+    expect(secondPage.nextPage).toBeNull();
   }, 15_000);
 });

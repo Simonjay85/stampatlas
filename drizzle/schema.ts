@@ -12,13 +12,34 @@ export const users = mysqlTable("users", {
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
 
+export const collectorProfiles = mysqlTable("collectorProfiles", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }).unique(),
+  username: varchar("username", { length: 48 }).notNull().unique(),
+  displayName: varchar("displayName", { length: 120 }).notNull(),
+  bio: text("bio"),
+  avatarUrl: text("avatarUrl"),
+  isPublic: boolean("isPublic").notNull().default(false),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => [index("collector_profile_public_idx").on(table.isPublic, table.username)]);
+
 export const collectionItems = mysqlTable("collectionItems", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
   stampSlug: varchar("stampSlug", { length: 160 }).notNull(),
   condition: mysqlEnum("condition", ["Mint", "Fine used", "Used", "FDC"]).notNull().default("Mint"),
+  quantity: int("quantity").notNull().default(1),
+  collectionStatus: mysqlEnum("collectionStatus", ["owned", "wishlist", "duplicate", "swap"]).notNull().default("owned"),
+  grade: mysqlEnum("grade", ["superb", "very_fine", "fine", "average", "damaged", "ungraded"]).notNull().default("ungraded"),
   purchasePrice: decimal("purchasePrice", { precision: 10, scale: 2 }).notNull().default("0"),
   acquiredAt: date("acquiredAt").notNull(),
+  acquisitionSource: varchar("acquisitionSource", { length: 255 }),
+  storageLocation: varchar("storageLocation", { length: 255 }),
+  albumPage: int("albumPage"),
+  customTags: text("customTags"),
+  frontImageUrl: text("frontImageUrl"),
+  backImageUrl: text("backImageUrl"),
   notes: text("notes").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -30,6 +51,7 @@ export const albums = mysqlTable("albums", {
   name: varchar("name", { length: 120 }).notNull(),
   description: text("description").notNull(),
   coverStampSlug: varchar("coverStampSlug", { length: 160 }).notNull(),
+  visibility: mysqlEnum("visibility", ["private", "public"]).notNull().default("private"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => [index("albums_user_updated_idx").on(table.userId, table.updatedAt)]);
@@ -179,7 +201,15 @@ export const publishedExternalStamps = mysqlTable("publishedExternalStamps", {
   publishedAt: timestamp("publishedAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => [index("published_external_published_idx").on(table.publishedAt)]);
-
+export const identificationScans = mysqlTable("identificationScans", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  topCandidateSlug: varchar("topCandidateSlug", { length: 160 }),
+  candidateSlugs: text("candidateSlugs").notNull(),
+  status: mysqlEnum("status", ["reviewed", "needs_research", "dismissed"]).notNull().default("needs_research"),
+  note: text("note"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => [index("identification_scan_user_idx").on(table.userId, table.createdAt)]);
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 export type CollectionItem = typeof collectionItems.$inferSelect;
@@ -193,3 +223,4 @@ export type Moment = typeof moments.$inferSelect;
 export type MomentMedia = typeof momentMedia.$inferSelect;
 export type MomentTag = typeof momentTags.$inferSelect;
 export type MomentCollection = typeof momentCollections.$inferSelect;
+export type IdentificationScan = typeof identificationScans.$inferSelect;

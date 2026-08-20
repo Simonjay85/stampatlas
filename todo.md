@@ -69,3 +69,40 @@
 - [x] Reconcile collectionIds của khoảnh khắc từ membership bộ sưu tập remote khi pull về mobile.
 - [x] Kiểm thử tích hợp hoàn chỉnh luồng mobile sync gồm tạo, cập nhật, gán bộ sưu tập và pull reconcile.
 - [x] Tách và kiểm thử logic reconcile trạng thái client mobile sau push/pull để tránh trùng draft và sai membership bộ sưu tập.
+- [ ] Xác nhận nhà cung cấp OAuth Google/Apple và cấu hình callback dùng chung cho website cùng ứng dụng iOS/Android.
+- [ ] Thêm luồng đăng nhập Google và Apple an toàn trên website và ứng dụng mobile.
+- [ ] Cho phép chỉnh sửa nội dung, nhãn, quyền riêng tư và trạng thái yêu thích của khoảnh khắc ngay trong ứng dụng mobile.
+- [ ] Cho phép xóa khoảnh khắc từ ứng dụng mobile với bước xác nhận rõ ràng và đồng bộ xóa lên website.
+- [ ] Thiết lập quyền nhận push notification và nhắc “Ngày này năm xưa” trên thiết bị mobile.
+- [ ] Kiểm thử OAuth, chỉnh sửa/xóa và cơ chế thông báo đẩy trước checkpoint.
+- [x] Phân tích nội dung tệp đính kèm `pasted_content_2.txt` và chuyển các yêu cầu phù hợp thành hạng mục cập nhật ứng dụng.
+- [x] Tạo nhánh `feat/collector-platform-v2` từ `feat/stamp-atlas-mvp`, ghi nhận baseline và bảo toàn mọi tính năng hiện có.
+- [x] Chuẩn hóa catalogue từ seed và nguồn ngoài đã xuất bản, có slug chống va chạm, tìm kiếm/lọc/phân trang phía máy chủ và provenance đầy đủ.
+- [x] Hợp nhất truy vấn catalogue seed và external trong một API server-side có cùng kiểu NormalizedStamp.
+- [x] Thêm phân trang thực tế trên Explore bằng nextPage của catalogue hợp nhất.
+- [x] Chuyển các consumer collection, dashboard và album từ resolver seed-only sang catalogue chuẩn hóa.
+- [x] Hoàn thiện phân trang server-side cho toàn bộ catalogue hợp nhất khi external records vượt quá lô đầu tiên, kèm test trang sau.
+- [x] Refactor CollectionDemoContext để không còn phụ thuộc seed fallback/default cover khi quản lý external slug.
+- [x] Thêm kiểm thử cho phân trang Explore và resolver dashboard/album với published external slug.
+- [ ] Thêm test integration cho trang 2+ khi số published external records vượt một lô truy vấn.
+- [ ] Thêm test UI Explore xác nhận điều hướng Previous/Next và render dữ liệu catalogue hợp nhất.
+- [ ] Thêm test render Dashboard/Albums với published external slug qua useCatalogueStampsBySlugs.
+- [x] Mở rộng inventory với quantity, status, grade, nguồn mua, vị trí lưu trữ, trang album, nhãn tùy chỉnh và ảnh mặt trước/sau.
+- [x] Nâng cấp dashboard bộ sưu tập với tìm kiếm, lọc, sắp xếp, chọn nhiều và hành động hàng loạt có xác nhận.
+- [x] Thêm trạng thái wishlist, duplicate và swap xuyên suốt catalogue, chi tiết tem và bộ sưu tập.
+- [x] Thêm nhập CSV có map cột, preview, validation, phát hiện trùng và tóm tắt kết quả; giữ export CSV hiện có.
+- [x] Bổ sung xuất CSV chọn lọc, JSON backup và báo cáo HTML có thể in nếu ổn định.
+- [x] Thêm báo cáo HTML in được cho inventory hiện đang lọc, không làm thay đổi dữ liệu sưu tập.
+- [ ] Bổ sung UI và persistence đầy đủ cho acquisition source, album page, ảnh mặt trước/sau cùng validation upload.
+- [ ] Cho phép chỉnh sửa toàn bộ metadata inventory mở rộng trong dashboard.
+- [ ] Thêm chọn wishlist/duplicate/swap từ catalogue và trang chi tiết, đồng thời hiển thị status liên quan trong collection.
+- [ ] Thêm kiểm thử metadata inventory mới và status flow từ detail/catalogue về collection.
+- [x] Triển khai hồ sơ người dùng thật, quyền hiển thị album và chia sẻ an toàn trên URL công khai.
+- [x] Bổ sung tải lên ảnh tem của người dùng với kiểm tra MIME/kích cỡ/quyền sở hữu và thay thế/xóa ảnh an toàn.
+- [x] Thêm endpoint/UI để xóa ảnh mặt trước hoặc mặt sau khỏi collection item và bỏ tham chiếu DB an toàn.
+- [x] Khi thay ảnh, dùng object key mới; ảnh cũ được bỏ tham chiếu khỏi DB theo quy ước storage của nền tảng, đồng thời kiểm tra quyền sở hữu cho upload/xóa.
+- [x] Xây nền tảng pipeline nhận diện có thể mở rộng, lịch sử quét, hàng đợi Needs Research và so sánh ứng viên không khẳng định tính xác thực.
+- [ ] Thêm hệ thống hướng dẫn philately có layout ngữ nghĩa, liên kết nội bộ và metadata SEO.
+- [ ] Thêm GitHub Actions CI cho type-check, tests, build và E2E công khai phù hợp.
+- [ ] Mở rộng test catalogue, inventory, nhập/xuất, nhận diện và kiểm soát quyền truy cập chéo người dùng.
+- [ ] Chạy validation cuối, tạo checkpoint, push nhánh và tạo pull request chưa merge vào `feat/stamp-atlas-mvp`.
