@@ -35,6 +35,9 @@ describe("external import persistence pipeline", () => {
     expect(updated.normalizedCountry).toBe("Editorial Turkey");
     expect(updated.eraDecade).toBe("1910s");
     expect(updated.classificationMethod).toBe("manual_override");
+    const history = await caller.externalImports.history({ id: record!.id });
+    expect(history).toHaveLength(1);
+    expect(history[0]).toMatchObject({ previousCountry: "Exampleland", nextCountry: "Editorial Turkey", previousEraDecade: "1950s", nextEraDecade: "1910s" });
     await caller.externalImports.review({ id: record!.id, reviewStatus: "approved", reviewNote: "Rights checked for test." });
     const published = await caller.externalImports.publish({ id: record!.id });
     expect(published.slug).toContain("pipeline-test-stamp");

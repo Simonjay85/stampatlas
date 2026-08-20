@@ -51,3 +51,21 @@
 - [x] Giữ editor metadata mở khi lưu thất bại, hiển thị trạng thái lưu và phản hồi thành công/lỗi rõ ràng.
 - [x] Kiểm thử callback lưu metadata thành công và thất bại ở thẻ duyệt admin.
 - [x] Mô phỏng callback lưu metadata thành công và lỗi để xác nhận editor, trạng thái và thông báo tương tác thực tế.
+- [x] Xác nhận phạm vi sản phẩm mobile-first cho ứng dụng sưu tầm khoảnh khắc cuộc sống.
+- [x] Tạo lịch sử chỉnh sửa metadata theo từng bản ghi để quản trị viên theo dõi người thay đổi, thời điểm và giá trị trước/sau.
+- [x] Mở rộng phân quyền reviewer/admin, giới hạn rõ thao tác xem, chỉnh sửa, duyệt và xuất bản.
+- [x] Thêm bộ lọc admin theo trạng thái duyệt và người cập nhật metadata gần nhất.
+- [x] Xây dựng các luồng ghi, xem và sưu tầm khoảnh khắc ưu tiên thiết bị di động.
+- [x] Kiểm thử các quyền, audit trail, bộ lọc và luồng mobile chính.
+- [x] Khởi tạo ứng dụng iOS/Android độc lập cho sản phẩm lưu giữ khoảnh khắc, dùng chung backend với website và xác thực bearer cho phiên OAuth.
+- [x] Thiết kế dữ liệu đồng bộ cho khoảnh khắc, ảnh, ghi chú, nhãn, bộ sưu tập, yêu thích và quyền riêng tư.
+- [x] Xây dựng các tab mobile: Dòng thời gian, Thêm khoảnh khắc, Bộ sưu tập và Hồ sơ.
+- [x] Bổ sung các trải nghiệm mobile mở rộng như tìm kiếm, lịch kỷ niệm, chia sẻ riêng tư và lưu nháp ngoại tuyến.
+- [x] Đồng bộ dữ liệu khoảnh khắc hai chiều với website thông qua API bảo mật.
+- [x] Thêm lịch kỷ niệm trong ứng dụng mobile cho ngày này những năm trước.
+- [x] Hoàn thiện API đồng bộ hai chiều cho chỉnh sửa khoảnh khắc, bộ sưu tập và gán khoảnh khắc vào bộ sưu tập.
+- [x] Kiểm thử tích hợp giao thức đồng bộ cho tạo/cập nhật khoảnh khắc và reconcile bộ sưu tập qua API website.
+- [x] Đồng bộ nội dung khoảnh khắc đã có remoteId bằng procedure moments.update thay vì chỉ cập nhật yêu thích.
+- [x] Reconcile collectionIds của khoảnh khắc từ membership bộ sưu tập remote khi pull về mobile.
+- [x] Kiểm thử tích hợp hoàn chỉnh luồng mobile sync gồm tạo, cập nhật, gán bộ sưu tập và pull reconcile.
+- [x] Tách và kiểm thử logic reconcile trạng thái client mobile sau push/pull để tránh trùng draft và sai membership bộ sưu tập.

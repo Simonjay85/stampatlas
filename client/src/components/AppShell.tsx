@@ -11,7 +11,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const { theme, toggleTheme } = useTheme();
   const [, setLocation] = useLocation();
   const [query, setQuery] = useState("");
-  const pendingImports = trpc.externalImports.pendingSummary.useQuery(undefined, { enabled: !!user && user.role === "admin" });
+  const canReviewImports = user?.role === "reviewer" || user?.role === "admin";
+  const pendingImports = trpc.externalImports.pendingSummary.useQuery(undefined, { enabled: !!canReviewImports });
 
   function submitSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -48,7 +49,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
             <NavLink href="/identify" icon><Sparkles size={14} /> Identify</NavLink>
             <NavLink href="/dashboard">My Collection</NavLink>
             <NavLink href="/albums">Albums</NavLink>
-            {user?.role === "admin" && <NavLink href="/admin/imports">Review imports{pendingImports.data?.count ? <span className="ml-1 rounded-full bg-[#e6b95d] px-1.5 py-0.5 text-[10px] text-[#173a34]">{pendingImports.data.count}</span> : null}</NavLink>}
+            <NavLink href="/moments">Moments</NavLink>
+            {canReviewImports && <NavLink href="/admin/imports">Review imports{pendingImports.data?.count ? <span className="ml-1 rounded-full bg-[#e6b95d] px-1.5 py-0.5 text-[10px] text-[#173a34]">{pendingImports.data.count}</span> : null}</NavLink>}
           </nav>
 
           <div className="ml-auto flex items-center gap-2 lg:ml-2">
@@ -68,7 +70,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
         <div className="flex gap-5 overflow-x-auto px-5 pb-3 text-xs font-semibold uppercase tracking-[0.12em] text-[#4a5e55] lg:hidden">
-          <Link href="/explore">Browse</Link><Link href="/identify">Identify</Link><Link href="/dashboard">My Collection</Link><Link href="/albums">Albums</Link>{user?.role === "admin" && <Link href="/admin/imports">Review imports{pendingImports.data?.count ? ` (${pendingImports.data.count})` : ""}</Link>}
+          <Link href="/explore">Browse</Link><Link href="/identify">Identify</Link><Link href="/dashboard">My Collection</Link><Link href="/albums">Albums</Link><Link href="/moments">Moments</Link>{canReviewImports && <Link href="/admin/imports">Review imports{pendingImports.data?.count ? ` (${pendingImports.data.count})` : ""}</Link>}
         </div>
       </header>
       <div id="main-content" tabIndex={-1}>{children}</div>
