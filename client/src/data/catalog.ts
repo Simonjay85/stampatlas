@@ -38,34 +38,16 @@ export type Stamp = {
 
 const imageSet = [
   {
-    src: "/manus-storage/egypt-post-stamp_576891e7.jpg",
-    alt: "Red and white historic postage stamp on a dark ground",
-    credit: "Public demo asset, sourced from Wikimedia Commons search results",
-    url: "https://commons.wikimedia.org/wiki/File:Post_Stamp_Egypt.jpg",
+    src: "/manus-storage/usps-national-parks-1934_fc5d903c.jpg",
+    alt: "Official 1934 United States National Park Service commemorative stamp issue",
+    credit: "Chris Light scan; underlying U.S. Post Office design, public domain in the United States",
+    url: "https://commons.wikimedia.org/wiki/File:USPS_National_Park_Service_1934.jpg",
   },
   {
-    src: "/manus-storage/american-flag-stamp_71412fef.jpg",
-    alt: "Blue and red American flag postage stamp",
-    credit: "Public demo asset, sourced from Wikimedia Commons search results",
-    url: "https://commons.wikimedia.org/wiki/File:American_Flag_5c_1963_issue_U.S._stamp.jpg",
-  },
-  {
-    src: "/manus-storage/romanian-dinosaur-stamp_7070d36c.jpg",
-    alt: "Illustrated dinosaur postage stamp",
-    credit: "Public demo asset, sourced from public-domain media search results",
-    url: "https://picryl.com/",
-  },
-  {
-    src: "/manus-storage/vintage-stamp-album_878f83dd.jpg",
-    alt: "Vintage album page with a stamp collection",
-    credit: "Clearly marked development placeholder image",
-    url: "https://stockcake.com/",
-  },
-  {
-    src: "/manus-storage/illustrated-stamp-sheet_196a3a20.png",
-    alt: "Illustrated sheet of botanical and animal stamps",
-    credit: "Clearly marked development placeholder image",
-    url: "https://www.rawpixel.com/",
+    src: "/manus-storage/usps-two-cent-reds-1926_3e7f9d63.jpg",
+    alt: "Official 1926 United States two-cent Sesquicentennial commemorative stamps",
+    credit: "U.S. Post Office / Bureau of Engraving and Printing, public domain in the United States",
+    url: "https://commons.wikimedia.org/wiki/File:Two_Cent_Reds_of_1926-1930.jpg",
   },
 ] as const;
 

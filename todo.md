@@ -22,3 +22,9 @@
 - [x] Verify authenticated pages using the persistent server-data path as well as the preview fallback state.
 - [x] Sửa hero để tem chính, tem phụ và các thẻ nổi không che nội dung hoặc tràn ra ngoài ở màn hình desktop hẹp.
 - [x] Kiểm tra hero ở kích thước màn hình người dùng và các breakpoint desktop/mobile sau khi sửa.
+- [x] Thay ảnh minh hoạ demo bằng ảnh tem công khai hoặc được phê duyệt có nguồn và ghi nhận bản quyền rõ ràng.
+- [x] Thêm dark mode có thể chuyển đổi từ thanh điều hướng và lưu lựa chọn người dùng.
+- [x] Thêm hiệu ứng hover nhẹ, tôn trọng reduced motion, cho các thẻ tem.
+- [x] Kiểm tra lại giao diện sáng/tối và ảnh tem mới ở desktop lẫn mobile.
+- [ ] Xuất bản mã nguồn StampAtlas hiện tại lên repository GitHub của người dùng và xác nhận liên kết.
+- [ ] Tạo repository GitHub công khai tên stampatlas và xuất bản phiên bản hoàn chỉnh hiện tại.

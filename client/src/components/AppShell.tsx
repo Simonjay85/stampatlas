@@ -1,11 +1,13 @@
 import { startLogin } from "@/const";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { Search, Sparkles, Stamp as StampIcon } from "lucide-react";
+import { Moon, Search, Sparkles, Stamp as StampIcon, Sun } from "lucide-react";
 import { FormEvent, ReactNode, useState } from "react";
 import { Link, useLocation } from "wouter";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const { user, loading, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [, setLocation] = useLocation();
   const [query, setQuery] = useState("");
 
@@ -15,7 +17,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#f7f5f0] text-[#14221f]">
+    <div className="app-shell min-h-screen bg-[#f7f5f0] text-[#14221f]">
       <a href="#main-content" className="skip-link">Skip to main content</a>
       <header className="sticky top-0 z-40 border-b border-[#1e302b]/10 bg-[#f7f5f0]/90 backdrop-blur-xl">
         <div className="container flex h-[76px] items-center gap-4">
@@ -47,6 +49,9 @@ export default function AppShell({ children }: { children: ReactNode }) {
           </nav>
 
           <div className="ml-auto flex items-center gap-2 lg:ml-2">
+            <button onClick={toggleTheme} className="grid h-10 w-10 place-items-center rounded-full border border-[#173a34]/10 bg-white/75 text-[#315746] transition hover:bg-[#e7f0e7] active:scale-[.97]" aria-label={theme === "dark" ? "Chuyển sang giao diện sáng" : "Chuyển sang giao diện tối"} title={theme === "dark" ? "Chế độ sáng" : "Chế độ tối"}>
+              {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
+            </button>
             {loading ? <span className="h-9 w-20 animate-pulse rounded-full bg-[#e5e8df]" /> : user ? (
               <button onClick={logout} className="flex h-10 items-center gap-2 rounded-full bg-[#173a34] py-1 pl-1 pr-3 text-sm font-medium text-white transition hover:bg-[#28574d] active:scale-[.97]" title="Sign out">
                 <span className="grid h-8 w-8 place-items-center rounded-full bg-[#e7b95d] text-xs font-bold text-[#173a34]">{user.name?.slice(0, 2).toUpperCase() || "SA"}</span>

@@ -36,7 +36,7 @@ function Router() {
 }
 
 function App() {
-  return <ErrorBoundary><ThemeProvider defaultTheme="light"><CollectionDemoProvider><TooltipProvider><Toaster /><Router /></TooltipProvider></CollectionDemoProvider></ThemeProvider></ErrorBoundary>;
+  return <ErrorBoundary><ThemeProvider defaultTheme="light" switchable><CollectionDemoProvider><TooltipProvider><Toaster /><Router /></TooltipProvider></CollectionDemoProvider></ThemeProvider></ErrorBoundary>;
 }
 
 export default App;

@@ -45,10 +45,27 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .catalogue-card { overflow: hidden; border: 1px solid rgba(30,48,43,.1); border-radius: 1.15rem; background: rgba(255,255,252,.9); box-shadow: 0 9px 22px rgba(42,60,46,.05); transition: transform .22s cubic-bezier(.23,1,.32,1), box-shadow .22s cubic-bezier(.23,1,.32,1); }
 .catalogue-card:hover { transform: translateY(-4px); box-shadow: 0 20px 32px rgba(42,60,46,.13); }
 .stamp-frame { position: relative; display: block; filter: drop-shadow(0 10px 13px rgba(33, 48, 35, .17)); }
-.stamp-paper { position: relative; height: 100%; overflow: hidden; background: #efe5c8; clip-path: polygon(0 3%, 2.3% 0, 5% 3%, 7.5% 0, 10% 3%, 12.5% 0, 15% 3%, 17.5% 0, 20% 3%, 22.5% 0, 25% 3%, 27.5% 0, 30% 3%, 32.5% 0, 35% 3%, 37.5% 0, 40% 3%, 42.5% 0, 45% 3%, 47.5% 0, 50% 3%, 52.5% 0, 55% 3%, 57.5% 0, 60% 3%, 62.5% 0, 65% 3%, 67.5% 0, 70% 3%, 72.5% 0, 75% 3%, 77.5% 0, 80% 3%, 82.5% 0, 85% 3%, 87.5% 0, 90% 3%, 92.5% 0, 95% 3%, 97.5% 0, 100% 3%, 100% 97%, 97.5% 100%, 95% 97%, 92.5% 100%, 90% 97%, 87.5% 100%, 85% 97%, 82.5% 100%, 80% 97%, 77.5% 100%, 75% 97%, 72.5% 100%, 70% 97%, 67.5% 100%, 65% 97%, 62.5% 100%, 60% 97%, 57.5% 100%, 55% 97%, 52.5% 100%, 50% 97%, 47.5% 100%, 45% 97%, 42.5% 100%, 40% 97%, 37.5% 100%, 35% 97%, 32.5% 100%, 30% 97%, 27.5% 100%, 25% 97%, 22.5% 100%, 20% 97%, 17.5% 100%, 15% 97%, 12.5% 100%, 10% 97%, 7.5% 100%, 5% 97%, 2.5% 100%, 0 97%); }
+.stamp-paper { position: relative; height: 100%; overflow: hidden; background: #efe5c8; clip-path: polygon(0 3%, 2.3% 0, 5% 3%, 7.5% 0, 10% 3%, 12.5% 0, 15% 3%, 17.5% 0, 20% 3%, 22.5% 0, 25% 3%, 27.5% 0, 30% 3%, 32.5% 0, 35% 3%, 37.5% 0, 40% 3%, 42.5% 0, 45% 3%, 47.5% 0, 50% 3%, 52.5% 0, 55% 3%, 57.5% 0, 60% 3%, 62.5% 0, 65% 3%, 67.5% 0, 70% 3%, 72.5% 0, 75% 3%, 77.5% 0, 80% 3%, 82.5% 0, 85% 3%, 87.5% 0, 90% 3%, 92.5% 0, 95% 3%, 97.5% 0, 100% 3%, 100% 97%, 97.5% 100%, 95% 97%, 92.5% 100%, 90% 97%, 87.5% 100%, 85% 97%, 82.5% 100%, 80% 97%, 77.5% 100%, 75% 97%, 72.5% 100%, 70% 97%, 67.5% 100%, 65% 97%, 62.5% 100%, 60% 97%, 57.5% 100%, 55% 97%, 52.5% 100%, 50% 97%, 47.5% 100%, 45% 97%, 42.5% 100%, 40% 97%, 37.5% 100%, 35% 97%, 32.5% 100%, 30% 97%, 27.5% 100%, 25% 97%, 22.5% 100%, 20% 97%, 17.5% 100%, 15% 97%, 12.5% 100%, 10% 97%, 7.5% 100%, 5% 97%, 2.5% 100%, 0 97%); transition: transform .28s cubic-bezier(.23,1,.32,1), filter .28s cubic-bezier(.23,1,.32,1); }
 .stamp-paper img { filter: saturate(.88) contrast(1.03); }
 .stamp-wash { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(125deg, rgba(255,255,255,.32), transparent 33%, rgba(24,57,46,.16)); mix-blend-mode: soft-light; }
 .stamp-mark { position: absolute; right: 7%; top: 4%; border-radius: 999px; background: rgba(254,252,242,.8); padding: .22rem .38rem; color: #28493c; backdrop-filter: blur(3px); }
 .stamp-perforation { position: absolute; inset: 3px; z-index: 1; border: 1px dashed rgba(255,255,255,.58); pointer-events: none; }
+.catalogue-card:hover .stamp-paper { transform: scale(1.035); filter: saturate(1.05) contrast(1.04); }
+.catalogue-card:hover .stamp-mark { transform: translateY(2px); background: rgba(255,255,255,.94); }
+.stamp-mark { transition: transform .22s cubic-bezier(.23,1,.32,1), background-color .22s cubic-bezier(.23,1,.32,1); }
+
+.dark { color-scheme: dark; }
+.dark .app-shell { background: #101b17 !important; color: #e5efe8; }
+.dark .app-shell header { border-color: rgba(213,231,219,.14); background: rgba(16,27,23,.92); }
+.dark .app-shell .hero-noise { background-color: #14251f; background-image: radial-gradient(rgba(185,216,193,.13) .7px, transparent .7px); }
+.dark .app-shell h1, .dark .app-shell h2, .dark .app-shell h3, .dark .app-shell .font-display { color: #f3f7f1; }
+.dark .app-shell p, .dark .app-shell span, .dark .app-shell label { color: inherit; }
+.dark .app-shell .eyebrow { color: #b6d2c1; }
+.dark .app-shell .catalogue-card { border-color: rgba(211,231,218,.12); background: #1a2a24; box-shadow: 0 12px 28px rgba(0,0,0,.22); }
+.dark .app-shell .catalogue-card:hover { box-shadow: 0 22px 40px rgba(0,0,0,.34); }
+.dark .app-shell [class*="bg-white"], .dark .app-shell [class*="bg-\[\#e"], .dark .app-shell [class*="bg-\[\#f"] { background-color: #1a2a24 !important; }
+.dark .app-shell [class*="text-\[\#"] { color: #d6e4da !important; }
+.dark .app-shell input, .dark .app-shell select, .dark .app-shell textarea { border-color: rgba(214,233,220,.18); background: #14221d; color: #e5efe8; }
+.dark .app-shell .stamp-paper { background: #d7c596; }
 @media (max-width: 640px) { .container { width: min(100% - 2rem, 1180px); } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } }

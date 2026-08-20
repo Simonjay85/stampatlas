@@ -15,3 +15,9 @@ The full public collection and selected public album galleries were also verifie
 Keyboard and accessibility safeguards were reviewed in the shared app shell: a skip link targets the main content container, all interactive controls receive a visible focus treatment, form controls have labels or accessible names, and motion is curtailed when `prefers-reduced-motion` is enabled. Persistent authenticated collection and album access was additionally exercised through a database-backed tRPC integration test.
 
 Hero layout fix: at 1444px, 1024px, and 375px viewports, the stamp composition remains contained within its illustration column, the main copy is unobscured, and both floating information cards stay readable above the central stamp.
+
+Approved stamp asset check: the homepage now renders verified public-domain U.S. Postal Service imagery in place of the previous placeholder assets. The navigation exposes an accessible button labelled to switch to dark mode.
+
+Dark mode check: the switch changes its accessible label to return to light mode, persists at the application root, and preserves readable hero text, controls, image surfaces, and contrast in the homepage view.
+
+Catalogue interaction check: in dark mode, verified public-domain stamp imagery remains visible in the grid and hovering a stamp card applies the intended subtle lift, shadow, and stamp-image emphasis without changing layout dimensions.
