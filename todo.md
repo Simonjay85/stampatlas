@@ -115,3 +115,8 @@
 - [x] Thêm test UI cho export CSV dashboard bao phủ preparing, success, error và Retry export.
 - [x] Thêm nút chia sẻ an toàn cho hồ sơ và bộ sưu tập công khai, dùng Web Share khi có sẵn và liên kết xã hội dự phòng.
 - [x] Bổ sung test, kiểm tra trực quan, checkpoint và cập nhật pull request cho các tính năng AI, CSV và chia sẻ mới.
+- [ ] Hardening PR #1: đồng bộ remote, kiểm tra head/base, diff và lỗi workflow GitHub Actions hiện tại.
+- [ ] Hardening PR #1: sửa pnpm GitHub Actions để packageManager là nguồn phiên bản duy nhất và xác minh check chạy thực tế.
+- [ ] Hardening PR #1: loại bỏ toàn bộ mã Moments/Life Archive, đồng bộ mobile và schema/API/test liên quan mà không ảnh hưởng dữ liệu tem.
+- [ ] Hardening PR #1: rà soát và sửa các lỗi correctness, rights, privacy, access control và data integrity thuộc V2.
+- [ ] Hardening PR #1: bổ sung regression coverage, chạy install frozen/check/test/build và cập nhật PR #1 không merge.
