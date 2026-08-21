@@ -78,6 +78,20 @@
       "when": 1787249531954,
       "tag": "0010_late_mauler",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "5",
+      "when": 1787280921329,
+      "tag": "0011_adorable_zodiak",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "5",
+      "when": 1787297039294,
+      "tag": "0012_pale_ulik",
+      "breakpoints": true
     }
   ]
 }

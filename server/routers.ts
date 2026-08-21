@@ -6,6 +6,7 @@ import { systemRouter } from "./_core/systemRouter";
 import * as db from "./db";
 import { storagePut } from "./storage";
 import { analyzeStampImage } from "./identificationAi";
+import { decodeImageDataUrl } from "./imageUpload";
 import { filterStamps, getStamp } from "../client/src/data/catalog";
 import { isVisibleCatalogueStamp, normalizeExternalStamp, normalizeSeededStamp } from "../client/src/data/normalizedCatalogue";
 
@@ -18,9 +19,6 @@ const albumCreateSchema = z.object({ name: z.string().trim().min(1).max(120), de
 const reuseStatusSchema = z.enum(["public_domain", "cc_by", "permission_granted", "metadata_only", "needs_review", "blocked"]);
 const stagedAssetSchema = z.object({ providerAssetId: z.string().min(1).max(255), mediaUrl: z.string().url(), previewUrl: z.string().url().nullable().optional(), mimeType: z.string().max(120).nullable().optional(), creator: z.string().max(4000).nullable().optional(), attribution: z.string().max(8000).nullable().optional(), rightsLabel: z.string().max(255).nullable().optional(), rightsUrl: z.string().url().nullable().optional(), reuseStatus: reuseStatusSchema });
 const stagedRecordSchema = z.object({ sourceRecordId: z.string().min(1).max(255), canonicalUrl: z.string().url(), title: z.string().min(1).max(500), country: z.string().max(160).nullable().optional(), issueDate: z.string().max(64).nullable().optional(), denomination: z.string().max(80).nullable().optional(), description: z.string().max(10000).nullable().optional(), reuseStatus: reuseStatusSchema, rightsLabel: z.string().max(255).nullable().optional(), rightsUrl: z.string().url().nullable().optional(), attribution: z.string().max(8000).nullable().optional(), sourcePayload: z.string().min(2).max(60000), assets: z.array(stagedAssetSchema).max(10) });
-const momentMediaSchema = z.object({ storageKey: z.string().min(1).max(500), mediaUrl: z.string().min(1).max(4000), mimeType: z.enum(["image/jpeg", "image/png", "image/webp", "image/heic"]), caption: z.string().trim().max(280).nullable().optional() });
-const momentCreateSchema = z.object({ title: z.string().trim().min(1).max(160), note: z.string().trim().max(10000).default(""), occurredAt: z.coerce.date(), locationLabel: z.string().trim().max(255).nullable().optional(), mood: z.string().trim().max(40).nullable().optional(), visibility: z.enum(["private", "shared_link"]).default("private"), isFavorite: z.boolean().default(false), tags: z.array(z.string().trim().min(1).max(60)).max(20).default([]), media: z.array(momentMediaSchema).max(8).default([]) });
-const momentUpdateSchema = momentCreateSchema.omit({ media: true }).partial().extend({ id: z.number().int().positive() });
 const catalogueSearchSchema = z.object({ query: z.string().trim().max(160).optional(), country: z.string().trim().max(160).optional(), decade: z.string().regex(/^\d{4}s$/).optional(), topic: z.string().trim().max(160).optional(), condition: z.enum(["Mint", "Fine used", "Used", "FDC"]).optional(), source: z.enum(["Wikimedia Commons", "Smithsonian", "Public-domain archive"]).optional(), page: z.number().int().min(0).optional(), limit: z.number().int().min(1).max(48).optional() });
 const profileSchema = z.object({ username: z.string().trim().toLowerCase().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).min(3).max(48), displayName: z.string().trim().min(1).max(120), bio: z.string().trim().max(1200).nullable().optional(), avatarUrl: z.string().url().max(4000).nullable().optional(), isPublic: z.boolean() });
 const identificationScanSchema = z.object({ topCandidateSlug: z.string().min(1).max(160).nullable().optional(), candidateSlugs: z.array(z.string().min(1).max(160)).min(1).max(12), status: z.enum(["reviewed", "needs_research", "dismissed"]).default("needs_research"), note: z.string().trim().max(2000).nullable().optional() });
@@ -47,10 +45,7 @@ export const appRouter = router({
     backup: protectedProcedure.query(({ ctx }) => db.getCollectionBackup(ctx.user.id)),
     uploadItemImage: protectedProcedure.input(z.object({ itemId: z.number().int().positive(), side: z.enum(["front", "back"]), dataUrl: z.string().max(8_500_000), mimeType: z.enum(["image/jpeg", "image/png", "image/webp"]), filename: z.string().trim().min(1).max(120) })).mutation(async ({ ctx, input }) => {
       await db.getCollectionItemForUser(ctx.user.id, input.itemId);
-      const match = input.dataUrl.match(/^data:([\w/+.-]+);base64,([A-Za-z0-9+/=]+)$/);
-      if (!match || match[1] !== input.mimeType) throw new Error("Invalid image upload payload");
-      const bytes = Buffer.from(match[2], "base64");
-      if (bytes.length > 6 * 1024 * 1024) throw new Error("Images must be 6MB or smaller");
+      const bytes = decodeImageDataUrl(input.dataUrl, input.mimeType);
       const extension = input.mimeType === "image/jpeg" ? "jpg" : input.mimeType.split("/")[1];
       const stored = await storagePut(`collection-items/${ctx.user.id}/${input.itemId}/${input.side}-${crypto.randomUUID()}.${extension}`, bytes, input.mimeType);
       await db.updateCollectionItem(ctx.user.id, input.itemId, input.side === "front" ? { frontImageUrl: stored.url } : { backImageUrl: stored.url });
@@ -100,9 +95,7 @@ export const appRouter = router({
     list: protectedProcedure.query(({ ctx }) => db.listIdentificationScans(ctx.user.id)),
     create: protectedProcedure.input(identificationScanSchema).mutation(({ ctx, input }) => db.createIdentificationScan(ctx.user.id, { ...input, status: input.status ?? "needs_research" })),
     analyze: protectedProcedure.input(z.object({ dataUrl: z.string().max(8_500_000), mimeType: z.enum(["image/jpeg", "image/png", "image/webp"]) })).mutation(async ({ ctx, input }) => {
-      const match = input.dataUrl.match(/^data:([\w/+.-]+);base64,([A-Za-z0-9+/=]+)$/);
-      if (!match || match[1] !== input.mimeType) throw new Error("Invalid image upload payload");
-      if (Buffer.from(match[2], "base64").length > 6 * 1024 * 1024) throw new Error("Images must be 6MB or smaller");
+      decodeImageDataUrl(input.dataUrl, input.mimeType);
       const recognition = await analyzeStampImage(input.dataUrl);
       const candidateSlugs = [recognition.likelySlug, ...recognition.alternativeSlugs].filter((slug): slug is string => Boolean(slug));
       if (!candidateSlugs.length) throw new Error("The image could not be safely matched to a catalogue record. Try a clearer image.");
@@ -111,32 +104,6 @@ export const appRouter = router({
     }),
     update: protectedProcedure.input(z.object({ id: z.number().int().positive(), status: z.enum(["reviewed", "needs_research", "dismissed"]).optional(), note: z.string().trim().max(2000).nullable().optional() })).mutation(({ ctx, input }) => { const { id, ...patch } = input; return db.updateIdentificationScan(ctx.user.id, id, patch); }),
     remove: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ ctx, input }) => db.deleteIdentificationScan(ctx.user.id, input.id)),
-  }),
-  moments: router({
-    list: protectedProcedure.input(z.object({ favoriteOnly: z.boolean().optional(), tagId: z.number().int().positive().optional() }).optional()).query(({ ctx, input }) => db.listMoments(ctx.user.id, input)),
-    tags: protectedProcedure.query(({ ctx }) => db.listMomentTags(ctx.user.id)),
-    create: protectedProcedure.input(momentCreateSchema).mutation(({ ctx, input }) => db.createMoment(ctx.user.id, input)),
-    update: protectedProcedure.input(momentUpdateSchema).mutation(({ ctx, input }) => {
-      const { id, ...patch } = input;
-      return db.updateMoment(ctx.user.id, id, patch);
-    }),
-    toggleFavorite: protectedProcedure.input(z.object({ id: z.number().int().positive(), isFavorite: z.boolean() })).mutation(({ ctx, input }) => db.toggleMomentFavorite(ctx.user.id, input.id, input.isFavorite)),
-    remove: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ ctx, input }) => db.deleteMoment(ctx.user.id, input.id)),
-    collections: router({
-      list: protectedProcedure.query(({ ctx }) => db.listMomentCollections(ctx.user.id)),
-      create: protectedProcedure.input(z.object({ title: z.string().trim().min(1).max(120), description: z.string().trim().max(1000).default(""), coverMediaUrl: z.string().max(4000).nullable().optional() })).mutation(({ ctx, input }) => db.createMomentCollection(ctx.user.id, input)),
-      assign: protectedProcedure.input(z.object({ momentCollectionId: z.number().int().positive(), momentId: z.number().int().positive(), position: z.number().int().min(0) })).mutation(({ ctx, input }) => db.assignMomentToCollection(ctx.user.id, input.momentCollectionId, input.momentId, input.position)),
-      replaceItems: protectedProcedure.input(z.object({ momentCollectionId: z.number().int().positive(), momentIds: z.array(z.number().int().positive()).max(500) })).mutation(({ ctx, input }) => db.replaceMomentCollectionItems(ctx.user.id, input.momentCollectionId, input.momentIds)),
-    }),
-    uploadMedia: protectedProcedure.input(z.object({ dataUrl: z.string().max(8_500_000), mimeType: z.enum(["image/jpeg", "image/png", "image/webp", "image/heic"]), filename: z.string().trim().min(1).max(120) })).mutation(async ({ ctx, input }) => {
-      const match = input.dataUrl.match(/^data:([\w/+.-]+);base64,([A-Za-z0-9+/=]+)$/);
-      if (!match || match[1] !== input.mimeType) throw new Error("Invalid image upload payload");
-      const bytes = Buffer.from(match[2], "base64");
-      if (bytes.length > 6 * 1024 * 1024) throw new Error("Images must be 6MB or smaller");
-      const extension = input.mimeType === "image/jpeg" ? "jpg" : input.mimeType.split("/")[1];
-      const result = await storagePut(`moments/${ctx.user.id}/${crypto.randomUUID()}.${extension}`, bytes, input.mimeType);
-      return { ...result, mimeType: input.mimeType };
-    }),
   }),
   externalCatalogue: router({
     list: publicProcedure.query(() => db.listPublishedExternalStamps()),

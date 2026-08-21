@@ -43,7 +43,7 @@ export const collectionItems = mysqlTable("collectionItems", {
   notes: text("notes").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-}, (table) => [index("collection_user_created_idx").on(table.userId, table.createdAt)]);
+}, (table) => [index("collection_user_created_idx").on(table.userId, table.createdAt), uniqueIndex("collection_user_stamp_unique").on(table.userId, table.stampSlug)]);
 
 export const albums = mysqlTable("albums", {
   id: int("id").autoincrement().primaryKey(),
@@ -118,64 +118,6 @@ export const externalStampMetadataHistory = mysqlTable("externalStampMetadataHis
   changedAt: timestamp("changedAt").defaultNow().notNull(),
 }, (table) => [index("metadata_history_record_changed_idx").on(table.externalStampRecordId, table.changedAt)]);
 
-export const moments = mysqlTable("moments", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
-  title: varchar("title", { length: 160 }).notNull(),
-  note: text("note").notNull(),
-  occurredAt: timestamp("occurredAt").notNull(),
-  locationLabel: varchar("locationLabel", { length: 255 }),
-  mood: varchar("mood", { length: 40 }),
-  visibility: mysqlEnum("visibility", ["private", "shared_link"]).notNull().default("private"),
-  isFavorite: boolean("isFavorite").notNull().default(false),
-  shareToken: varchar("shareToken", { length: 64 }).unique(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-}, (table) => [index("moments_user_occurred_idx").on(table.userId, table.occurredAt), index("moments_user_updated_idx").on(table.userId, table.updatedAt)]);
-
-export const momentMedia = mysqlTable("momentMedia", {
-  id: int("id").autoincrement().primaryKey(),
-  momentId: int("momentId").notNull().references(() => moments.id, { onDelete: "cascade" }),
-  storageKey: varchar("storageKey", { length: 500 }).notNull(),
-  mediaUrl: text("mediaUrl").notNull(),
-  mimeType: varchar("mimeType", { length: 120 }).notNull(),
-  caption: varchar("caption", { length: 280 }),
-  position: int("position").notNull().default(0),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-}, (table) => [index("moment_media_moment_position_idx").on(table.momentId, table.position)]);
-
-export const momentTags = mysqlTable("momentTags", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
-  name: varchar("name", { length: 60 }).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-}, (table) => [uniqueIndex("moment_tag_user_name_unique").on(table.userId, table.name)]);
-
-export const momentTagAssignments = mysqlTable("momentTagAssignments", {
-  id: int("id").autoincrement().primaryKey(),
-  momentId: int("momentId").notNull().references(() => moments.id, { onDelete: "cascade" }),
-  tagId: int("tagId").notNull().references(() => momentTags.id, { onDelete: "cascade" }),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-}, (table) => [uniqueIndex("moment_tag_assignment_unique").on(table.momentId, table.tagId)]);
-
-export const momentCollections = mysqlTable("momentCollections", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
-  title: varchar("title", { length: 120 }).notNull(),
-  description: text("description").notNull(),
-  coverMediaUrl: text("coverMediaUrl"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-}, (table) => [index("moment_collections_user_updated_idx").on(table.userId, table.updatedAt)]);
-
-export const momentCollectionItems = mysqlTable("momentCollectionItems", {
-  id: int("id").autoincrement().primaryKey(),
-  momentCollectionId: int("momentCollectionId").notNull().references(() => momentCollections.id, { onDelete: "cascade" }),
-  momentId: int("momentId").notNull().references(() => moments.id, { onDelete: "cascade" }),
-  position: int("position").notNull().default(0),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-}, (table) => [uniqueIndex("moment_collection_item_unique").on(table.momentCollectionId, table.momentId), index("moment_collection_position_idx").on(table.momentCollectionId, table.position)]);
-
 export const externalStampAssets = mysqlTable("externalStampAssets", {
   id: int("id").autoincrement().primaryKey(),
   externalStampRecordId: int("externalStampRecordId").notNull().references(() => externalStampRecords.id, { onDelete: "cascade" }),
@@ -221,8 +163,4 @@ export type ExternalStampRecord = typeof externalStampRecords.$inferSelect;
 export type ExternalStampAsset = typeof externalStampAssets.$inferSelect;
 export type ExternalStampMetadataHistory = typeof externalStampMetadataHistory.$inferSelect;
 export type PublishedExternalStamp = typeof publishedExternalStamps.$inferSelect;
-export type Moment = typeof moments.$inferSelect;
-export type MomentMedia = typeof momentMedia.$inferSelect;
-export type MomentTag = typeof momentTags.$inferSelect;
-export type MomentCollection = typeof momentCollections.$inferSelect;
 export type IdentificationScan = typeof identificationScans.$inferSelect;

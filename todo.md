@@ -115,8 +115,18 @@
 - [x] Thêm test UI cho export CSV dashboard bao phủ preparing, success, error và Retry export.
 - [x] Thêm nút chia sẻ an toàn cho hồ sơ và bộ sưu tập công khai, dùng Web Share khi có sẵn và liên kết xã hội dự phòng.
 - [x] Bổ sung test, kiểm tra trực quan, checkpoint và cập nhật pull request cho các tính năng AI, CSV và chia sẻ mới.
-- [ ] Hardening PR #1: đồng bộ remote, kiểm tra head/base, diff và lỗi workflow GitHub Actions hiện tại.
-- [ ] Hardening PR #1: sửa pnpm GitHub Actions để packageManager là nguồn phiên bản duy nhất và xác minh check chạy thực tế.
-- [ ] Hardening PR #1: loại bỏ toàn bộ mã Moments/Life Archive, đồng bộ mobile và schema/API/test liên quan mà không ảnh hưởng dữ liệu tem.
-- [ ] Hardening PR #1: rà soát và sửa các lỗi correctness, rights, privacy, access control và data integrity thuộc V2.
+- [x] Hardening PR #1: đồng bộ remote, kiểm tra head/base, diff và lỗi workflow GitHub Actions hiện tại.
+- [x] Hardening PR #1: sửa pnpm GitHub Actions để packageManager là nguồn phiên bản duy nhất, chạy MySQL integration service và xác minh check chạy thực tế.
+- [x] Hardening PR #1: loại bỏ mã Moments/Life Archive khỏi source web hoạt động (route/UI/API/schema/test), xóa sáu bảng dữ liệu theo xác nhận, và giữ migration history/log cũ làm dấu vết kỹ thuật không thực thi.
+- [x] Hardening PR #1: tái tạo production build và xác nhận source/artefact đang hoạt động không còn route, API hay bundle Moments; migration history cũ được giữ nguyên để chuỗi migration có thể replay.
+- [x] Hardening PR #1: rà soát và sửa các lỗi ưu tiên về correctness, privacy, access control và data integrity phát hiện trong pre-merge review; phân quyền importer reviewer/admin hiện có được giữ nguyên và chạy regression.
+- [x] Hardening PR #1: thực hiện audit mở rộng các bề mặt V2 còn lại về rights publication và access-control reviewer/admin; không phát hiện surface chưa bảo vệ trong phạm vi PR.
+- [x] Hardening PR #1: thêm regression test chứng minh bản ghi external thiếu rights publishable không thể được phát hành công khai.
+- [x] Hardening PR #1: kiểm tra public profile chỉ công bố album được đánh dấu public và có regression test cho ranh giới riêng tư.
+- [x] Hardening PR #1: thay PublicCollection dùng catalogue demo tĩnh bằng truy vấn `profiles.public`, chỉ công bố album public qua URL và có regression test riêng.
+- [x] Hardening PR #1: bổ sung guard ownership/not-found cho update/xóa scan nhận diện và regression test lỗi rõ ràng.
+- [x] Hardening PR #1: kiểm tra kiểm soát quyền sở hữu khi sửa/xóa collection album và ảnh; trả lỗi rõ ràng khi bản ghi không tồn tại.
+- [x] Hardening PR #1: kiểm tra AI image flow không lưu ảnh nguồn, giới hạn payload/mime và chỉ lưu metadata scan tối thiểu.
+- [x] Hardening PR #1: kiểm tra validation import/export tránh trùng lặp hoặc nhập dữ liệu không hợp lệ và bảo toàn dữ liệu hiện có khi lỗi.
+- [x] Hardening PR #1: thêm ràng buộc duy nhất `(userId, stampSlug)` và transaction import để chống duplicate do request đồng thời.
 - [ ] Hardening PR #1: bổ sung regression coverage, chạy install frozen/check/test/build và cập nhật PR #1 không merge.

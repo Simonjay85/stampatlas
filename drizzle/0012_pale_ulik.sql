@@ -1,0 +1,1 @@
+ALTER TABLE `collectionItems` ADD CONSTRAINT `collection_user_stamp_unique` UNIQUE(`userId`,`stampSlug`);

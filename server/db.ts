@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, inArray, like, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { albums, albumItems, collectionItems, collectorProfiles, externalImportJobs, externalStampAssets, externalStampMetadataHistory, externalStampRecords, identificationScans, InsertUser, momentCollectionItems, momentCollections, momentMedia, momentTagAssignments, momentTags, moments, publishedExternalStamps, users } from "../drizzle/schema";
+import { albums, albumItems, collectionItems, collectorProfiles, externalImportJobs, externalStampAssets, externalStampMetadataHistory, externalStampRecords, identificationScans, InsertUser, publishedExternalStamps, users } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 import { classifyImportedStamp } from "./importers/classify";
 
@@ -91,6 +91,8 @@ export async function listCollectionItems(userId: number) {
 export async function createCollectionItem(userId: number, input: CollectionItemInput) {
   const db = await getDb();
   if (!db) throw new Error("Database unavailable");
+  const existing = await db.select({ id: collectionItems.id }).from(collectionItems).where(and(eq(collectionItems.userId, userId), eq(collectionItems.stampSlug, input.stampSlug))).limit(1);
+  if (existing[0]) throw new Error("Stamp already exists in this collection");
   await db.insert(collectionItems).values({ userId, stampSlug: input.stampSlug, condition: input.condition, quantity: input.quantity, collectionStatus: input.collectionStatus, grade: input.grade, purchasePrice: String(input.purchasePrice), acquiredAt: new Date(`${input.acquiredAt}T00:00:00.000Z`), acquisitionSource: input.acquisitionSource ?? null, storageLocation: input.storageLocation ?? null, albumPage: input.albumPage ?? null, customTags: JSON.stringify(input.customTags), frontImageUrl: input.frontImageUrl ?? null, backImageUrl: input.backImageUrl ?? null, notes: input.notes });
   return listCollectionItems(userId);
 }
@@ -98,6 +100,7 @@ export async function createCollectionItem(userId: number, input: CollectionItem
 export async function updateCollectionItem(userId: number, itemId: number, patch: Partial<Omit<CollectionItemInput, "stampSlug">>) {
   const db = await getDb();
   if (!db) throw new Error("Database unavailable");
+  await getCollectionItemForUser(userId, itemId);
   const values: Record<string, unknown> = { ...patch };
   if (patch.purchasePrice !== undefined) values.purchasePrice = String(patch.purchasePrice);
   if (patch.acquiredAt !== undefined) values.acquiredAt = new Date(`${patch.acquiredAt}T00:00:00.000Z`);
@@ -109,6 +112,7 @@ export async function updateCollectionItem(userId: number, itemId: number, patch
 export async function deleteCollectionItem(userId: number, itemId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database unavailable");
+  await getCollectionItemForUser(userId, itemId);
   await db.delete(collectionItems).where(and(eq(collectionItems.id, itemId), eq(collectionItems.userId, userId)));
   return listCollectionItems(userId);
 }
@@ -124,15 +128,17 @@ export async function getCollectionItemForUser(userId: number, itemId: number) {
 export async function importCollectionItems(userId: number, input: CollectionItemInput[]) {
   const db = await getDb();
   if (!db) throw new Error("Database unavailable");
-  const existing = await db.select({ stampSlug: collectionItems.stampSlug }).from(collectionItems).where(eq(collectionItems.userId, userId));
-  const known = new Set(existing.map((item) => item.stampSlug));
-  const created: string[] = []; const skipped: string[] = [];
-  for (const item of input) {
-    if (known.has(item.stampSlug)) { skipped.push(item.stampSlug); continue; }
-    await db.insert(collectionItems).values({ userId, stampSlug: item.stampSlug, condition: item.condition, quantity: item.quantity, collectionStatus: item.collectionStatus, grade: item.grade, purchasePrice: String(item.purchasePrice), acquiredAt: new Date(`${item.acquiredAt}T00:00:00.000Z`), acquisitionSource: item.acquisitionSource ?? null, storageLocation: item.storageLocation ?? null, albumPage: item.albumPage ?? null, customTags: JSON.stringify(item.customTags), frontImageUrl: item.frontImageUrl ?? null, backImageUrl: item.backImageUrl ?? null, notes: item.notes });
-    known.add(item.stampSlug); created.push(item.stampSlug);
-  }
-  return { createdCount: created.length, skippedCount: skipped.length, created, skipped };
+  return db.transaction(async (tx) => {
+    const existing = await tx.select({ stampSlug: collectionItems.stampSlug }).from(collectionItems).where(eq(collectionItems.userId, userId));
+    const known = new Set(existing.map((item) => item.stampSlug));
+    const created: string[] = []; const skipped: string[] = [];
+    for (const item of input) {
+      if (known.has(item.stampSlug)) { skipped.push(item.stampSlug); continue; }
+      await tx.insert(collectionItems).values({ userId, stampSlug: item.stampSlug, condition: item.condition, quantity: item.quantity, collectionStatus: item.collectionStatus, grade: item.grade, purchasePrice: String(item.purchasePrice), acquiredAt: new Date(`${item.acquiredAt}T00:00:00.000Z`), acquisitionSource: item.acquisitionSource ?? null, storageLocation: item.storageLocation ?? null, albumPage: item.albumPage ?? null, customTags: JSON.stringify(item.customTags), frontImageUrl: item.frontImageUrl ?? null, backImageUrl: item.backImageUrl ?? null, notes: item.notes });
+      known.add(item.stampSlug); created.push(item.stampSlug);
+    }
+    return { createdCount: created.length, skippedCount: skipped.length, created, skipped };
+  });
 }
 
 export async function getCollectionBackup(userId: number) {
@@ -159,6 +165,8 @@ export async function createAlbum(userId: number, input: AlbumInput) {
 export async function updateAlbum(userId: number, albumId: number, patch: Partial<AlbumInput>) {
   const db = await getDb();
   if (!db) throw new Error("Database unavailable");
+  const owned = await db.select({ id: albums.id }).from(albums).where(and(eq(albums.id, albumId), eq(albums.userId, userId))).limit(1);
+  if (!owned[0]) throw new Error("Album unavailable");
   await db.update(albums).set(patch).where(and(eq(albums.id, albumId), eq(albums.userId, userId)));
   return listAlbums(userId);
 }
@@ -183,6 +191,11 @@ export async function reorderAlbumItems(userId: number, albumId: number, collect
   if (!db) throw new Error("Database unavailable");
   const owned = await db.select({ id: albums.id }).from(albums).where(and(eq(albums.id, albumId), eq(albums.userId, userId))).limit(1);
   if (!owned[0]) throw new Error("Album unavailable");
+  const assigned = await db.select({ collectionItemId: albumItems.collectionItemId }).from(albumItems).where(eq(albumItems.albumId, albumId));
+  const submitted = new Set(collectionItemIds);
+  if (submitted.size !== collectionItemIds.length || assigned.length !== collectionItemIds.length || assigned.some((item) => !submitted.has(item.collectionItemId))) {
+    throw new Error("Album item order must include each assigned item exactly once");
+  }
   for (let position = 0; position < collectionItemIds.length; position += 1) {
     const collectionItemId = collectionItemIds[position];
     await db.update(albumItems).set({ position }).where(and(eq(albumItems.albumId, albumId), eq(albumItems.collectionItemId, collectionItemId)));
@@ -225,6 +238,8 @@ export async function listExternalStampRecords(filters?: ExternalImportFilter) {
 export async function reviewExternalStampRecord(reviewerUserId: number, recordId: number, reviewStatus: "approved" | "rejected", reviewNote: string) {
   const db = await getDb();
   if (!db) throw new Error("Database unavailable");
+  const target = await db.select({ id: externalStampRecords.id }).from(externalStampRecords).where(eq(externalStampRecords.id, recordId)).limit(1);
+  if (!target[0]) throw new Error("Imported record unavailable");
   await db.update(externalStampRecords).set({ reviewStatus, reviewNote, reviewedByUserId: reviewerUserId, reviewedAt: new Date(), lastUpdatedByUserId: reviewerUserId, updatedAt: new Date() }).where(eq(externalStampRecords.id, recordId));
   return listExternalStampRecords();
 }
@@ -373,9 +388,6 @@ export async function getPublishedExternalStampsBySlugs(slugs: string[]) {
   return records.map((record) => ({ ...record, assets: assets.filter((asset) => asset.externalStampRecordId === record.externalStampRecordId) }));
 }
 
-export type MomentMediaInput = { storageKey: string; mediaUrl: string; mimeType: string; caption?: string | null };
-export type MomentCreateInput = { title: string; note: string; occurredAt: Date; locationLabel?: string | null; mood?: string | null; visibility: "private" | "shared_link"; isFavorite: boolean; tags: string[]; media: MomentMediaInput[] };
-export type MomentUpdateInput = Partial<Omit<MomentCreateInput, "media">>;
 export type IdentificationScanInput = { topCandidateSlug?: string | null; candidateSlugs: string[]; status: "reviewed" | "needs_research" | "dismissed"; note?: string | null; aiAnalysisJson?: string | null; model?: string | null };
 
 export async function listIdentificationScans(userId: number) {
@@ -389,128 +401,24 @@ export async function createIdentificationScan(userId: number, input: Identifica
   await db.insert(identificationScans).values({ userId, topCandidateSlug: input.topCandidateSlug ?? null, candidateSlugs: JSON.stringify(Array.from(new Set(input.candidateSlugs)).slice(0, 12)), status: input.status, note: input.note ?? null, aiAnalysisJson: input.aiAnalysisJson ?? null, model: input.model ?? null });
   return listIdentificationScans(userId);
 }
+export async function getIdentificationScanForUser(userId: number, id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const scan = await db.select({ id: identificationScans.id }).from(identificationScans).where(and(eq(identificationScans.id, id), eq(identificationScans.userId, userId))).limit(1);
+  if (!scan[0]) throw new Error("Identification scan unavailable");
+  return scan[0];
+}
 export async function updateIdentificationScan(userId: number, id: number, patch: Partial<Pick<IdentificationScanInput, "status" | "note">>) {
   const db = await getDb();
   if (!db) throw new Error("Database unavailable");
+  await getIdentificationScanForUser(userId, id);
   await db.update(identificationScans).set(patch).where(and(eq(identificationScans.id, id), eq(identificationScans.userId, userId)));
   return listIdentificationScans(userId);
 }
 export async function deleteIdentificationScan(userId: number, id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database unavailable");
+  await getIdentificationScanForUser(userId, id);
   await db.delete(identificationScans).where(and(eq(identificationScans.id, id), eq(identificationScans.userId, userId)));
   return listIdentificationScans(userId);
-}
-
-export async function listMoments(userId: number, filters?: { favoriteOnly?: boolean; tagId?: number }) {
-  const db = await getDb();
-  if (!db) return [];
-  const conditions = [eq(moments.userId, userId), filters?.favoriteOnly ? eq(moments.isFavorite, true) : undefined].filter(Boolean);
-  const rows = await db.select().from(moments).where(and(...conditions)).orderBy(desc(moments.occurredAt));
-  if (!rows.length) return [];
-  const momentIds = rows.map((row) => row.id);
-  const media = await db.select().from(momentMedia).where(inArray(momentMedia.momentId, momentIds));
-  const assignments = await db.select().from(momentTagAssignments).where(inArray(momentTagAssignments.momentId, momentIds));
-  const tagIds = Array.from(new Set(assignments.map((assignment) => assignment.tagId)));
-  const tags = tagIds.length ? await db.select().from(momentTags).where(inArray(momentTags.id, tagIds)) : [];
-  return rows.filter((row) => !filters?.tagId || assignments.some((assignment) => assignment.momentId === row.id && assignment.tagId === filters.tagId)).map((row) => ({ ...row, media: media.filter((item) => item.momentId === row.id).sort((a, b) => a.position - b.position), tags: assignments.filter((assignment) => assignment.momentId === row.id).map((assignment) => tags.find((tag) => tag.id === assignment.tagId)).filter(Boolean) }));
-}
-
-export async function createMoment(userId: number, input: MomentCreateInput) {
-  const db = await getDb();
-  if (!db) throw new Error("Database unavailable");
-  const shareToken = input.visibility === "shared_link" ? crypto.randomUUID().replaceAll("-", "") : null;
-  const inserted = await db.insert(moments).values({ userId, title: input.title, note: input.note, occurredAt: input.occurredAt, locationLabel: input.locationLabel ?? null, mood: input.mood ?? null, visibility: input.visibility, isFavorite: input.isFavorite, shareToken });
-  const momentId = Number(inserted[0].insertId);
-  for (let position = 0; position < input.media.length; position += 1) {
-    const media = input.media[position];
-    await db.insert(momentMedia).values({ momentId, storageKey: media.storageKey, mediaUrl: media.mediaUrl, mimeType: media.mimeType, caption: media.caption ?? null, position });
-  }
-  for (const rawTag of Array.from(new Set(input.tags.map((tag) => tag.trim()).filter(Boolean)))) {
-    await db.insert(momentTags).values({ userId, name: rawTag }).onDuplicateKeyUpdate({ set: { name: rawTag } });
-    const tag = await db.select({ id: momentTags.id }).from(momentTags).where(and(eq(momentTags.userId, userId), eq(momentTags.name, rawTag))).limit(1);
-    if (tag[0]) await db.insert(momentTagAssignments).values({ momentId, tagId: tag[0].id }).onDuplicateKeyUpdate({ set: { tagId: tag[0].id } });
-  }
-  const created = await listMoments(userId);
-  return created.find((moment) => moment.id === momentId) ?? null;
-}
-
-export async function updateMoment(userId: number, momentId: number, input: MomentUpdateInput) {
-  const db = await getDb();
-  if (!db) throw new Error("Database unavailable");
-  const existing = await db.select().from(moments).where(and(eq(moments.id, momentId), eq(moments.userId, userId))).limit(1);
-  if (!existing[0]) throw new Error("Moment unavailable");
-  const nextVisibility = input.visibility ?? existing[0].visibility;
-  const nextShareToken = nextVisibility === "shared_link" ? existing[0].shareToken ?? crypto.randomUUID().replaceAll("-", "") : null;
-  await db.update(moments).set({ title: input.title ?? existing[0].title, note: input.note ?? existing[0].note, occurredAt: input.occurredAt ?? existing[0].occurredAt, locationLabel: input.locationLabel === undefined ? existing[0].locationLabel : input.locationLabel, mood: input.mood === undefined ? existing[0].mood : input.mood, visibility: nextVisibility, isFavorite: input.isFavorite ?? existing[0].isFavorite, shareToken: nextShareToken, updatedAt: new Date() }).where(eq(moments.id, momentId));
-  if (input.tags) {
-    await db.delete(momentTagAssignments).where(eq(momentTagAssignments.momentId, momentId));
-    for (const rawTag of Array.from(new Set(input.tags.map((tag) => tag.trim()).filter(Boolean)))) {
-      await db.insert(momentTags).values({ userId, name: rawTag }).onDuplicateKeyUpdate({ set: { name: rawTag } });
-      const tag = await db.select({ id: momentTags.id }).from(momentTags).where(and(eq(momentTags.userId, userId), eq(momentTags.name, rawTag))).limit(1);
-      if (tag[0]) await db.insert(momentTagAssignments).values({ momentId, tagId: tag[0].id });
-    }
-  }
-  const updated = await listMoments(userId);
-  return updated.find((moment) => moment.id === momentId) ?? null;
-}
-
-export async function toggleMomentFavorite(userId: number, momentId: number, isFavorite: boolean) {
-  const db = await getDb();
-  if (!db) throw new Error("Database unavailable");
-  await db.update(moments).set({ isFavorite, updatedAt: new Date() }).where(and(eq(moments.id, momentId), eq(moments.userId, userId)));
-  return { id: momentId, isFavorite };
-}
-
-export async function deleteMoment(userId: number, momentId: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database unavailable");
-  await db.delete(moments).where(and(eq(moments.id, momentId), eq(moments.userId, userId)));
-  return { id: momentId };
-}
-
-export async function listMomentTags(userId: number) {
-  const db = await getDb();
-  if (!db) return [];
-  return db.select().from(momentTags).where(eq(momentTags.userId, userId)).orderBy(momentTags.name);
-}
-
-export async function listMomentCollections(userId: number) {
-  const db = await getDb();
-  if (!db) return [];
-  const collections = await db.select().from(momentCollections).where(eq(momentCollections.userId, userId)).orderBy(desc(momentCollections.updatedAt));
-  if (!collections.length) return [];
-  const items = await db.select().from(momentCollectionItems).where(inArray(momentCollectionItems.momentCollectionId, collections.map((collection) => collection.id)));
-  return collections.map((collection) => { const collectionItems = items.filter((item) => item.momentCollectionId === collection.id).sort((a, b) => a.position - b.position); return { ...collection, momentCount: collectionItems.length, momentIds: collectionItems.map((item) => item.momentId) }; });
-}
-
-export async function createMomentCollection(userId: number, input: { title: string; description: string; coverMediaUrl?: string | null }) {
-  const db = await getDb();
-  if (!db) throw new Error("Database unavailable");
-  const created = await db.insert(momentCollections).values({ userId, title: input.title, description: input.description, coverMediaUrl: input.coverMediaUrl ?? null });
-  return { id: Number(created[0].insertId), title: input.title };
-}
-
-export async function assignMomentToCollection(userId: number, momentCollectionId: number, momentId: number, position: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database unavailable");
-  const ownedCollection = await db.select({ id: momentCollections.id }).from(momentCollections).where(and(eq(momentCollections.id, momentCollectionId), eq(momentCollections.userId, userId))).limit(1);
-  const ownedMoment = await db.select({ id: moments.id }).from(moments).where(and(eq(moments.id, momentId), eq(moments.userId, userId))).limit(1);
-  if (!ownedCollection[0] || !ownedMoment[0]) throw new Error("Moment or collection unavailable");
-  await db.insert(momentCollectionItems).values({ momentCollectionId, momentId, position }).onDuplicateKeyUpdate({ set: { position } });
-  return { momentCollectionId, momentId, position };
-}
-
-export async function replaceMomentCollectionItems(userId: number, momentCollectionId: number, momentIds: number[]) {
-  const db = await getDb();
-  if (!db) throw new Error("Database unavailable");
-  const ownedCollection = await db.select({ id: momentCollections.id }).from(momentCollections).where(and(eq(momentCollections.id, momentCollectionId), eq(momentCollections.userId, userId))).limit(1);
-  if (!ownedCollection[0]) throw new Error("Collection unavailable");
-  if (momentIds.length) {
-    const ownedMoments = await db.select({ id: moments.id }).from(moments).where(and(eq(moments.userId, userId), inArray(moments.id, momentIds)));
-    if (ownedMoments.length !== momentIds.length) throw new Error("One or more moments are unavailable");
-  }
-  await db.delete(momentCollectionItems).where(eq(momentCollectionItems.momentCollectionId, momentCollectionId));
-  for (let position = 0; position < momentIds.length; position += 1) await db.insert(momentCollectionItems).values({ momentCollectionId, momentId: momentIds[position], position });
-  return { momentCollectionId, momentIds };
 }

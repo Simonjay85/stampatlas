@@ -19,6 +19,14 @@ describe("collection workflows", () => {
     expect(preview.errors).toEqual([expect.objectContaining({ row: 3, message: "Invalid condition" })]);
   });
 
+  it("rejects CSV files without a slug header, duplicate rows, and impossible dates", () => {
+    expect(previewCollectionCsv("Title,Condition\nNo slug,Mint").errors).toEqual([expect.objectContaining({ message: "A Stamp slug column is required" })]);
+    const preview = previewCollectionCsv("Stamp slug,Acquired date\nrepeat,2026-08-20\nrepeat,2026-02-30");
+    expect(preview.rows).toHaveLength(1);
+    expect(preview.errors).toEqual([expect.objectContaining({ row: 3, message: "Duplicate stamp slug in this CSV" })]);
+    expect(previewCollectionCsv("Stamp slug,Acquired date\ninvalid-date,2026-02-30").errors).toEqual([expect.objectContaining({ message: "Invalid quantity, price, or acquired date" })]);
+  });
+
   it("builds a printable report and escapes collector supplied text", () => {
     const report = buildPrintableCollectionReport([{ title: "<script>", country: "Exampleland", year: 1950, condition: "Mint", quantity: 1, collectionStatus: "owned", grade: "ungraded", purchasePrice: 4, storageLocation: null, tags: ["test"] }]);
     expect(report).toContain("&lt;script&gt;");
