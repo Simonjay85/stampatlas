@@ -32,6 +32,14 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm drizzle-kit migrate
+      - name: Seed integration test identities
+        run: >-
+          mysql -h 127.0.0.1 -uroot -proot stampatlas_test -e
+          "INSERT INTO users (id, openId, role) VALUES
+          (1, 'stampatlas-ci-admin', 'admin'),
+          (2, 'stampatlas-ci-reviewer', 'reviewer'),
+          (7, 'stampatlas-ci-user', 'user')
+          ON DUPLICATE KEY UPDATE role = VALUES(role);"
       - run: pnpm test
       - run: pnpm check
       - run: pnpm build
