@@ -142,3 +142,6 @@
 - [x] Giữ adapter Smithsonian ở trạng thái không kích hoạt khi chưa có API key; hỗ trợ intake file Open Access đã tải hợp pháp thay vì gọi API trái phép.
 - [x] Bổ sung test, kiểm tra SEO kỹ thuật, checkpoint và cập nhật PR không merge cho CMS/blog/pipeline dữ liệu mở rộng.
 - [x] Hoàn thiện canonical, Article JSON-LD và render liên kết nội bộ an toàn trên bài blog công khai; thêm regression test metadata.
+- [x] Lập bản tóm tắt reviewable cho PR #1, xác minh commit và CI trước quyết định merge.
+- [x] Chuẩn bị đường dẫn kiểm tra nhánh V2 và hướng dẫn staging; chỉ merge PR #1 sau xác nhận rõ ràng của người dùng.
+- [ ] Merge PR #1 vào `feat/stamp-atlas-mvp` bằng merge commit theo xác nhận của người dùng và xác minh nhánh base sau merge.
