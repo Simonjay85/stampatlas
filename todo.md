@@ -129,4 +129,4 @@
 - [x] Hardening PR #1: kiểm tra AI image flow không lưu ảnh nguồn, giới hạn payload/mime và chỉ lưu metadata scan tối thiểu.
 - [x] Hardening PR #1: kiểm tra validation import/export tránh trùng lặp hoặc nhập dữ liệu không hợp lệ và bảo toàn dữ liệu hiện có khi lỗi.
 - [x] Hardening PR #1: thêm ràng buộc duy nhất `(userId, stampSlug)` và transaction import để chống duplicate do request đồng thời.
-- [ ] Hardening PR #1: bổ sung regression coverage, chạy install frozen/check/test/build và cập nhật PR #1 không merge.
+- [x] Hardening PR #1: bổ sung regression coverage, chạy install frozen/check/test/build, cập nhật PR #1 và xác minh GitHub Actions thành công khi PR vẫn chưa merge.
