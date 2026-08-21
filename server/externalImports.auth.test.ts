@@ -17,6 +17,7 @@ describe("external import administration", () => {
     await expect(caller.externalImports.list()).resolves.toBeInstanceOf(Array);
     await expect(caller.externalImports.publish({ id: 1 })).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(caller.externalImports.stage({ provider: "wikimedia_commons", query: "test", records: [] })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(caller.externalImports.stageSmithsonianFile({ fileName: "open-access.json", fileText: "[{\"id\":\"test\",\"title\":\"Test stamp\"}]", sourceUrl: "https://www.si.edu/openaccess", confirmedRightsReview: true })).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(caller.accessControl.listUsers()).rejects.toMatchObject({ code: "FORBIDDEN" });
   }, 15_000);
 

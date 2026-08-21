@@ -1,17 +1,31 @@
 import AppShell from "@/components/AppShell";
 import { trpc } from "@/lib/trpc";
+import { applyArticleMetadata, isSafeMarkdownLink } from "@/lib/articleMetadata";
 import { ArrowLeft, ExternalLink, LoaderCircle } from "lucide-react";
 import React, { useEffect } from "react";
 import { Link, useRoute } from "wouter";
 
-function useArticleMetadata(title?: string, description?: string) {
+function useArticleMetadata(article?: { title: string; seoTitle: string; seoDescription: string; canonicalUrl: string | null; slug: string; publishedAt: Date | null; updatedAt: Date } | null) {
   useEffect(() => {
-    if (!title) return;
-    document.title = `${title} | StampAtlas`;
-    let tag = document.querySelector('meta[name="description"]');
-    if (!tag) { tag = document.createElement("meta"); tag.setAttribute("name", "description"); document.head.appendChild(tag); }
-    if (description) tag.setAttribute("content", description);
-  }, [description, title]);
+    if (!article) return;
+    applyArticleMetadata({ title: article.seoTitle || article.title, description: article.seoDescription, canonicalUrl: article.canonicalUrl, slug: article.slug, publishedAt: article.publishedAt, updatedAt: article.updatedAt });
+  }, [article]);
+}
+
+function InlineMarkdown({ value }: { value: string }) {
+  const matches = Array.from(value.matchAll(/\[([^\]]+)\]\(([^\s)]+)\)/g));
+  if (!matches.length) return value;
+  const output: React.ReactNode[] = [];
+  let cursor = 0;
+  matches.forEach((match, index) => {
+    const [whole, label, url] = match;
+    const start = match.index ?? 0;
+    if (start > cursor) output.push(value.slice(cursor, start));
+    output.push(isSafeMarkdownLink(url) ? <a key={`${url}-${index}`} href={url} className="font-semibold text-[#315746] underline underline-offset-4 hover:text-[#173a34]">{label}</a> : whole);
+    cursor = start + whole.length;
+  });
+  if (cursor < value.length) output.push(value.slice(cursor));
+  return <>{output}</>;
 }
 
 function MarkdownBody({ value }: { value: string }) {
@@ -20,14 +34,14 @@ function MarkdownBody({ value }: { value: string }) {
     if (text.startsWith("## ")) return <h2 key={index} className="pt-4 font-display text-3xl font-semibold tracking-[-.04em] text-[#173a34]">{text.slice(3)}</h2>;
     if (text.startsWith("# ")) return <h2 key={index} className="pt-4 font-display text-4xl font-semibold tracking-[-.05em] text-[#173a34]">{text.slice(2)}</h2>;
     if (text.split("\n").every((line) => line.startsWith("- "))) return <ul key={index} className="list-disc space-y-2 pl-6">{text.split("\n").map((line) => <li key={line}>{line.slice(2)}</li>)}</ul>;
-    return <p key={index}>{text}</p>;
+    return <p key={index}><InlineMarkdown value={text} /></p>;
   })}</div>;
 }
 
 export default function BlogArticle() {
   const [, params] = useRoute("/blog/:slug");
   const article = trpc.blog.bySlug.useQuery({ slug: params?.slug ?? "" }, { enabled: Boolean(params?.slug) });
-  useArticleMetadata(article.data?.seoTitle, article.data?.seoDescription);
+  useArticleMetadata(article.data);
   if (article.isLoading) return <AppShell><main className="container grid min-h-[58vh] place-items-center py-16"><LoaderCircle className="animate-spin text-[#315746]" aria-label="Loading article" /></main></AppShell>;
   if (!article.data) return <AppShell><main className="container py-20"><p className="eyebrow">Article unavailable</p><h1 className="mt-4 font-display text-5xl font-semibold">This article is not published.</h1><Link href="/blog" className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#315746]"><ArrowLeft size={16} /> Back to the journal</Link></main></AppShell>;
   const entry = article.data;

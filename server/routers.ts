@@ -8,6 +8,7 @@ import { storagePut } from "./storage";
 import { analyzeStampImage } from "./identificationAi";
 import { decodeImageDataUrl } from "./imageUpload";
 import { fetchWikimediaStampRecords } from "./importers/wikimedia";
+import { parseSmithsonianOpenAccessFile } from "./importers/smithsonianFile";
 import { filterStamps, getStamp } from "../client/src/data/catalog";
 import { isVisibleCatalogueStamp, normalizeExternalStamp, normalizeSeededStamp } from "../client/src/data/normalizedCatalogue";
 
@@ -76,6 +77,10 @@ export const appRouter = router({
       const records = await fetchWikimediaStampRecords(input.query, input.limit);
       if (!records.length) throw new Error("No image records were returned by Wikimedia Commons for this query");
       return db.stageExternalStampRecords(ctx.user.id, "wikimedia_commons", input.query, records);
+    }),
+    stageSmithsonianFile: adminProcedure.input(z.object({ fileName: z.string().trim().min(3).max(255).regex(/\.json$/i, "Only JSON Open Access manifests are supported"), fileText: z.string().min(2).max(600_000), sourceUrl: z.string().url().refine((value) => new URL(value).hostname.endsWith("si.edu"), "Source URL must be an official Smithsonian domain"), confirmedRightsReview: z.literal(true) })).mutation(({ ctx, input }) => {
+      const records = parseSmithsonianOpenAccessFile(input.fileText);
+      return db.stageExternalStampRecords(ctx.user.id, "smithsonian", `Open Access file: ${input.fileName} (${input.sourceUrl})`, records);
     }),
     updateMetadata: reviewerProcedure.input(z.object({ id: z.number().int().positive(), country: z.string().trim().max(160).nullable(), eraDecade: z.string().regex(/^\d{4}s$/).nullable() })).mutation(({ ctx, input }) => {
       const { id, ...metadata } = input;
