@@ -134,7 +134,10 @@
 - [x] Ghi rõ phạm vi toàn cầu và nguồn dữ liệu công khai trong content plan; không điền volume, KD hoặc CPC không có nguồn kiểm chứng.
 - [x] Thêm mô hình CMS cho bài viết với draft/review/published, slug, SEO title/description, canonical, structured data và nguồn tham khảo.
 - [x] Triển khai giao diện blog công khai có trang danh mục, trang bài viết và SEO technical hợp lệ; không xuất bản nội dung chưa duyệt.
-- [ ] Viết lại nội dung từ nguồn được phép thành bài gốc, có kiểm tra trùng lặp, phân biệt rõ dữ kiện được dẫn nguồn với nội dung biên tập.
+- [x] Viết lại nội dung từ nguồn được phép thành bài gốc, có kiểm tra trùng lặp, phân biệt rõ dữ kiện được dẫn nguồn với nội dung biên tập.
+- [x] Tạo khoảng 100 bản nháp blog tiếng Anh từ editorial plan bằng generator có JSON schema, quality gate và trạng thái draft; không tự publish hàng loạt.
+- [x] Kiểm tra 100 blog draft về liên kết nội bộ, trùng lặp cơ bản và các claim xác thực/định giá cụ thể; bổ sung regression test cho quality gate.
 - [x] Triển khai intake Wikimedia Commons qua API chính thức, lưu provenance/rights/attribution và bắt buộc review trước publish.
+- [x] Lấy batch Wikimedia Commons ban đầu bằng API chính thức: 99 record duy nhất được stage vào review queue và 0 record tự publish.
 - [ ] Giữ adapter Smithsonian ở trạng thái không kích hoạt khi chưa có API key; hỗ trợ intake file Open Access đã tải hợp pháp thay vì gọi API trái phép.
 - [ ] Bổ sung test, kiểm tra SEO kỹ thuật, checkpoint và cập nhật PR không merge cho CMS/blog/pipeline dữ liệu mở rộng.
