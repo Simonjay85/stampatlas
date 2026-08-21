@@ -140,5 +140,5 @@
 - [x] Triển khai intake Wikimedia Commons qua API chính thức, lưu provenance/rights/attribution và bắt buộc review trước publish.
 - [x] Lấy batch Wikimedia Commons ban đầu bằng API chính thức: 99 record duy nhất được stage vào review queue và 0 record tự publish.
 - [x] Giữ adapter Smithsonian ở trạng thái không kích hoạt khi chưa có API key; hỗ trợ intake file Open Access đã tải hợp pháp thay vì gọi API trái phép.
-- [ ] Bổ sung test, kiểm tra SEO kỹ thuật, checkpoint và cập nhật PR không merge cho CMS/blog/pipeline dữ liệu mở rộng.
+- [x] Bổ sung test, kiểm tra SEO kỹ thuật, checkpoint và cập nhật PR không merge cho CMS/blog/pipeline dữ liệu mở rộng.
 - [x] Hoàn thiện canonical, Article JSON-LD và render liên kết nội bộ an toàn trên bài blog công khai; thêm regression test metadata.
