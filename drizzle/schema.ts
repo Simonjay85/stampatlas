@@ -1,4 +1,4 @@
-import { date, decimal, index, int, mysqlEnum, mysqlTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
+import { boolean, date, decimal, index, int, mysqlEnum, mysqlTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
 
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
@@ -6,23 +6,44 @@ export const users = mysqlTable("users", {
   name: text("name"),
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
-  role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  role: mysqlEnum("role", ["user", "reviewer", "admin"]).default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
+
+export const collectorProfiles = mysqlTable("collectorProfiles", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }).unique(),
+  username: varchar("username", { length: 48 }).notNull().unique(),
+  displayName: varchar("displayName", { length: 120 }).notNull(),
+  bio: text("bio"),
+  avatarUrl: text("avatarUrl"),
+  isPublic: boolean("isPublic").notNull().default(false),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => [index("collector_profile_public_idx").on(table.isPublic, table.username)]);
 
 export const collectionItems = mysqlTable("collectionItems", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
   stampSlug: varchar("stampSlug", { length: 160 }).notNull(),
   condition: mysqlEnum("condition", ["Mint", "Fine used", "Used", "FDC"]).notNull().default("Mint"),
+  quantity: int("quantity").notNull().default(1),
+  collectionStatus: mysqlEnum("collectionStatus", ["owned", "wishlist", "duplicate", "swap"]).notNull().default("owned"),
+  grade: mysqlEnum("grade", ["superb", "very_fine", "fine", "average", "damaged", "ungraded"]).notNull().default("ungraded"),
   purchasePrice: decimal("purchasePrice", { precision: 10, scale: 2 }).notNull().default("0"),
   acquiredAt: date("acquiredAt").notNull(),
+  acquisitionSource: varchar("acquisitionSource", { length: 255 }),
+  storageLocation: varchar("storageLocation", { length: 255 }),
+  albumPage: int("albumPage"),
+  customTags: text("customTags"),
+  frontImageUrl: text("frontImageUrl"),
+  backImageUrl: text("backImageUrl"),
   notes: text("notes").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-}, (table) => [index("collection_user_created_idx").on(table.userId, table.createdAt)]);
+}, (table) => [index("collection_user_created_idx").on(table.userId, table.createdAt), uniqueIndex("collection_user_stamp_unique").on(table.userId, table.stampSlug)]);
 
 export const albums = mysqlTable("albums", {
   id: int("id").autoincrement().primaryKey(),
@@ -30,6 +51,7 @@ export const albums = mysqlTable("albums", {
   name: varchar("name", { length: 120 }).notNull(),
   description: text("description").notNull(),
   coverStampSlug: varchar("coverStampSlug", { length: 160 }).notNull(),
+  visibility: mysqlEnum("visibility", ["private", "public"]).notNull().default("private"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => [index("albums_user_updated_idx").on(table.userId, table.updatedAt)]);
@@ -78,11 +100,23 @@ export const externalStampRecords = mysqlTable("externalStampRecords", {
   reviewNote: text("reviewNote"),
   reviewedByUserId: int("reviewedByUserId").references(() => users.id, { onDelete: "set null" }),
   reviewedAt: timestamp("reviewedAt"),
+  lastUpdatedByUserId: int("lastUpdatedByUserId").references(() => users.id, { onDelete: "set null" }),
   sourcePayload: text("sourcePayload").notNull(),
   sourceRetrievedAt: timestamp("sourceRetrievedAt").defaultNow().notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-}, (table) => [uniqueIndex("external_record_provider_source_unique").on(table.provider, table.sourceRecordId), index("external_record_review_idx").on(table.reviewStatus, table.provider)]);
+}, (table) => [uniqueIndex("external_record_provider_source_unique").on(table.provider, table.sourceRecordId), index("external_record_review_idx").on(table.reviewStatus, table.provider), index("external_record_last_updated_idx").on(table.lastUpdatedByUserId, table.updatedAt)]);
+
+export const externalStampMetadataHistory = mysqlTable("externalStampMetadataHistory", {
+  id: int("id").autoincrement().primaryKey(),
+  externalStampRecordId: int("externalStampRecordId").notNull().references(() => externalStampRecords.id, { onDelete: "cascade" }),
+  changedByUserId: int("changedByUserId").references(() => users.id, { onDelete: "set null" }),
+  previousCountry: varchar("previousCountry", { length: 160 }),
+  nextCountry: varchar("nextCountry", { length: 160 }),
+  previousEraDecade: varchar("previousEraDecade", { length: 16 }),
+  nextEraDecade: varchar("nextEraDecade", { length: 16 }),
+  changedAt: timestamp("changedAt").defaultNow().notNull(),
+}, (table) => [index("metadata_history_record_changed_idx").on(table.externalStampRecordId, table.changedAt)]);
 
 export const externalStampAssets = mysqlTable("externalStampAssets", {
   id: int("id").autoincrement().primaryKey(),
@@ -110,6 +144,38 @@ export const publishedExternalStamps = mysqlTable("publishedExternalStamps", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => [index("published_external_published_idx").on(table.publishedAt)]);
 
+export const blogArticles = mysqlTable("blogArticles", {
+  id: int("id").autoincrement().primaryKey(),
+  slug: varchar("slug", { length: 180 }).notNull().unique(),
+  title: varchar("title", { length: 180 }).notNull(),
+  summary: varchar("summary", { length: 500 }).notNull(),
+  bodyMarkdown: text("bodyMarkdown").notNull(),
+  cluster: varchar("cluster", { length: 80 }).notNull(),
+  status: mysqlEnum("status", ["draft", "in_review", "published", "archived"]).notNull().default("draft"),
+  seoTitle: varchar("seoTitle", { length: 180 }).notNull(),
+  seoDescription: varchar("seoDescription", { length: 320 }).notNull(),
+  canonicalUrl: text("canonicalUrl"),
+  sourceReferencesJson: text("sourceReferencesJson").notNull(),
+  authorUserId: int("authorUserId").references(() => users.id, { onDelete: "set null" }),
+  reviewedByUserId: int("reviewedByUserId").references(() => users.id, { onDelete: "set null" }),
+  reviewedAt: timestamp("reviewedAt"),
+  publishedByUserId: int("publishedByUserId").references(() => users.id, { onDelete: "set null" }),
+  publishedAt: timestamp("publishedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => [index("blog_article_status_published_idx").on(table.status, table.publishedAt), index("blog_article_cluster_published_idx").on(table.cluster, table.publishedAt)]);
+
+export const identificationScans = mysqlTable("identificationScans", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  topCandidateSlug: varchar("topCandidateSlug", { length: 160 }),
+  candidateSlugs: text("candidateSlugs").notNull(),
+  aiAnalysisJson: text("aiAnalysisJson"),
+  model: varchar("model", { length: 120 }),
+  status: mysqlEnum("status", ["reviewed", "needs_research", "dismissed"]).notNull().default("needs_research"),
+  note: text("note"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => [index("identification_scan_user_idx").on(table.userId, table.createdAt)]);
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 export type CollectionItem = typeof collectionItems.$inferSelect;
@@ -117,4 +183,7 @@ export type Album = typeof albums.$inferSelect;
 export type ExternalImportJob = typeof externalImportJobs.$inferSelect;
 export type ExternalStampRecord = typeof externalStampRecords.$inferSelect;
 export type ExternalStampAsset = typeof externalStampAssets.$inferSelect;
+export type ExternalStampMetadataHistory = typeof externalStampMetadataHistory.$inferSelect;
 export type PublishedExternalStamp = typeof publishedExternalStamps.$inferSelect;
+export type BlogArticle = typeof blogArticles.$inferSelect;
+export type IdentificationScan = typeof identificationScans.$inferSelect;

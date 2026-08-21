@@ -43,6 +43,62 @@
       "when": 1787224464372,
       "tag": "0005_known_blonde_phantom",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1787225867863,
+      "tag": "0006_living_albert_cleary",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1787244559805,
+      "tag": "0007_vengeful_gabe_jones",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1787245576754,
+      "tag": "0008_wakeful_invisible_woman",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1787246068844,
+      "tag": "0009_bored_bushwacker",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1787249531954,
+      "tag": "0010_late_mauler",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "5",
+      "when": 1787280921329,
+      "tag": "0011_adorable_zodiak",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "5",
+      "when": 1787297039294,
+      "tag": "0012_pale_ulik",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "5",
+      "when": 1787306866993,
+      "tag": "0013_good_electro",
+      "breakpoints": true
     }
   ]
 }

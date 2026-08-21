@@ -51,3 +51,97 @@
 - [x] Giữ editor metadata mở khi lưu thất bại, hiển thị trạng thái lưu và phản hồi thành công/lỗi rõ ràng.
 - [x] Kiểm thử callback lưu metadata thành công và thất bại ở thẻ duyệt admin.
 - [x] Mô phỏng callback lưu metadata thành công và lỗi để xác nhận editor, trạng thái và thông báo tương tác thực tế.
+- [x] Xác nhận phạm vi sản phẩm mobile-first cho ứng dụng sưu tầm khoảnh khắc cuộc sống.
+- [x] Tạo lịch sử chỉnh sửa metadata theo từng bản ghi để quản trị viên theo dõi người thay đổi, thời điểm và giá trị trước/sau.
+- [x] Mở rộng phân quyền reviewer/admin, giới hạn rõ thao tác xem, chỉnh sửa, duyệt và xuất bản.
+- [x] Thêm bộ lọc admin theo trạng thái duyệt và người cập nhật metadata gần nhất.
+- [x] Xây dựng các luồng ghi, xem và sưu tầm khoảnh khắc ưu tiên thiết bị di động.
+- [x] Kiểm thử các quyền, audit trail, bộ lọc và luồng mobile chính.
+- [x] Khởi tạo ứng dụng iOS/Android độc lập cho sản phẩm lưu giữ khoảnh khắc, dùng chung backend với website và xác thực bearer cho phiên OAuth.
+- [x] Thiết kế dữ liệu đồng bộ cho khoảnh khắc, ảnh, ghi chú, nhãn, bộ sưu tập, yêu thích và quyền riêng tư.
+- [x] Xây dựng các tab mobile: Dòng thời gian, Thêm khoảnh khắc, Bộ sưu tập và Hồ sơ.
+- [x] Bổ sung các trải nghiệm mobile mở rộng như tìm kiếm, lịch kỷ niệm, chia sẻ riêng tư và lưu nháp ngoại tuyến.
+- [x] Đồng bộ dữ liệu khoảnh khắc hai chiều với website thông qua API bảo mật.
+- [x] Thêm lịch kỷ niệm trong ứng dụng mobile cho ngày này những năm trước.
+- [x] Hoàn thiện API đồng bộ hai chiều cho chỉnh sửa khoảnh khắc, bộ sưu tập và gán khoảnh khắc vào bộ sưu tập.
+- [x] Kiểm thử tích hợp giao thức đồng bộ cho tạo/cập nhật khoảnh khắc và reconcile bộ sưu tập qua API website.
+- [x] Đồng bộ nội dung khoảnh khắc đã có remoteId bằng procedure moments.update thay vì chỉ cập nhật yêu thích.
+- [x] Reconcile collectionIds của khoảnh khắc từ membership bộ sưu tập remote khi pull về mobile.
+- [x] Kiểm thử tích hợp hoàn chỉnh luồng mobile sync gồm tạo, cập nhật, gán bộ sưu tập và pull reconcile.
+- [x] Tách và kiểm thử logic reconcile trạng thái client mobile sau push/pull để tránh trùng draft và sai membership bộ sưu tập.
+- [ ] Xác nhận nhà cung cấp OAuth Google/Apple và cấu hình callback dùng chung cho website cùng ứng dụng iOS/Android.
+- [ ] Thêm luồng đăng nhập Google và Apple an toàn trên website và ứng dụng mobile.
+- [ ] Cho phép chỉnh sửa nội dung, nhãn, quyền riêng tư và trạng thái yêu thích của khoảnh khắc ngay trong ứng dụng mobile.
+- [ ] Cho phép xóa khoảnh khắc từ ứng dụng mobile với bước xác nhận rõ ràng và đồng bộ xóa lên website.
+- [ ] Thiết lập quyền nhận push notification và nhắc “Ngày này năm xưa” trên thiết bị mobile.
+- [ ] Kiểm thử OAuth, chỉnh sửa/xóa và cơ chế thông báo đẩy trước checkpoint.
+- [x] Phân tích nội dung tệp đính kèm `pasted_content_2.txt` và chuyển các yêu cầu phù hợp thành hạng mục cập nhật ứng dụng.
+- [x] Tạo nhánh `feat/collector-platform-v2` từ `feat/stamp-atlas-mvp`, ghi nhận baseline và bảo toàn mọi tính năng hiện có.
+- [x] Chuẩn hóa catalogue từ seed và nguồn ngoài đã xuất bản, có slug chống va chạm, tìm kiếm/lọc/phân trang phía máy chủ và provenance đầy đủ.
+- [x] Hợp nhất truy vấn catalogue seed và external trong một API server-side có cùng kiểu NormalizedStamp.
+- [x] Thêm phân trang thực tế trên Explore bằng nextPage của catalogue hợp nhất.
+- [x] Chuyển các consumer collection, dashboard và album từ resolver seed-only sang catalogue chuẩn hóa.
+- [x] Hoàn thiện phân trang server-side cho toàn bộ catalogue hợp nhất khi external records vượt quá lô đầu tiên, kèm test trang sau.
+- [x] Refactor CollectionDemoContext để không còn phụ thuộc seed fallback/default cover khi quản lý external slug.
+- [x] Thêm kiểm thử cho phân trang Explore và resolver dashboard/album với published external slug.
+- [ ] Thêm test integration cho trang 2+ khi số published external records vượt một lô truy vấn.
+- [ ] Thêm test UI Explore xác nhận điều hướng Previous/Next và render dữ liệu catalogue hợp nhất.
+- [ ] Thêm test render Dashboard/Albums với published external slug qua useCatalogueStampsBySlugs.
+- [x] Mở rộng inventory với quantity, status, grade, nguồn mua, vị trí lưu trữ, trang album, nhãn tùy chỉnh và ảnh mặt trước/sau.
+- [x] Nâng cấp dashboard bộ sưu tập với tìm kiếm, lọc, sắp xếp, chọn nhiều và hành động hàng loạt có xác nhận.
+- [x] Thêm trạng thái wishlist, duplicate và swap xuyên suốt catalogue, chi tiết tem và bộ sưu tập.
+- [x] Thêm nhập CSV có map cột, preview, validation, phát hiện trùng và tóm tắt kết quả; giữ export CSV hiện có.
+- [x] Bổ sung xuất CSV chọn lọc, JSON backup và báo cáo HTML có thể in nếu ổn định.
+- [x] Thêm báo cáo HTML in được cho inventory hiện đang lọc, không làm thay đổi dữ liệu sưu tập.
+- [ ] Bổ sung UI và persistence đầy đủ cho acquisition source, album page, ảnh mặt trước/sau cùng validation upload.
+- [ ] Cho phép chỉnh sửa toàn bộ metadata inventory mở rộng trong dashboard.
+- [ ] Thêm chọn wishlist/duplicate/swap từ catalogue và trang chi tiết, đồng thời hiển thị status liên quan trong collection.
+- [ ] Thêm kiểm thử metadata inventory mới và status flow từ detail/catalogue về collection.
+- [x] Triển khai hồ sơ người dùng thật, quyền hiển thị album và chia sẻ an toàn trên URL công khai.
+- [x] Bổ sung tải lên ảnh tem của người dùng với kiểm tra MIME/kích cỡ/quyền sở hữu và thay thế/xóa ảnh an toàn.
+- [x] Thêm endpoint/UI để xóa ảnh mặt trước hoặc mặt sau khỏi collection item và bỏ tham chiếu DB an toàn.
+- [x] Khi thay ảnh, dùng object key mới; ảnh cũ được bỏ tham chiếu khỏi DB theo quy ước storage của nền tảng, đồng thời kiểm tra quyền sở hữu cho upload/xóa.
+- [x] Xây nền tảng pipeline nhận diện có thể mở rộng, lịch sử quét, hàng đợi Needs Research và so sánh ứng viên không khẳng định tính xác thực.
+- [ ] Thêm hệ thống hướng dẫn philately có layout ngữ nghĩa, liên kết nội bộ và metadata SEO.
+- [ ] Thêm GitHub Actions CI cho type-check, tests, build và E2E công khai phù hợp.
+- [ ] Mở rộng test catalogue, inventory, nhập/xuất, nhận diện và kiểm soát quyền truy cập chéo người dùng.
+- [ ] Chạy validation cuối, tạo checkpoint, push nhánh và tạo pull request chưa merge vào `feat/stamp-atlas-mvp`.
+- [x] Thêm nhận diện tem bằng AI từ ảnh tải lên, có JSON có cấu trúc, giới hạn file, không lưu ảnh nguồn và cảnh báo không xác thực/định giá.
+- [x] Hiển thị tiến trình, trạng thái thành công/lỗi và khả năng thử lại rõ ràng cho import/export CSV của collection.
+- [x] Thêm nút retry rõ ràng sau lỗi import hoặc export CSV/backup và nêu trạng thái từng bước của export.
+- [x] Bổ sung test UI cho trạng thái loading, success, error và retry của công cụ import/export collection.
+- [x] Bổ sung trạng thái từng bước rõ ràng cho export CSV/backup, gồm preparing data, creating file và download started.
+- [ ] Mở rộng test UI bao phủ loading/success/error/retry của import và backup JSON.
+- [x] Thêm test UI cho export CSV dashboard bao phủ preparing, success, error và Retry export.
+- [x] Thêm nút chia sẻ an toàn cho hồ sơ và bộ sưu tập công khai, dùng Web Share khi có sẵn và liên kết xã hội dự phòng.
+- [x] Bổ sung test, kiểm tra trực quan, checkpoint và cập nhật pull request cho các tính năng AI, CSV và chia sẻ mới.
+- [x] Hardening PR #1: đồng bộ remote, kiểm tra head/base, diff và lỗi workflow GitHub Actions hiện tại.
+- [x] Hardening PR #1: sửa pnpm GitHub Actions để packageManager là nguồn phiên bản duy nhất, chạy MySQL integration service và xác minh check chạy thực tế.
+- [x] Hardening PR #1: loại bỏ mã Moments/Life Archive khỏi source web hoạt động (route/UI/API/schema/test), xóa sáu bảng dữ liệu theo xác nhận, và giữ migration history/log cũ làm dấu vết kỹ thuật không thực thi.
+- [x] Hardening PR #1: tái tạo production build và xác nhận source/artefact đang hoạt động không còn route, API hay bundle Moments; migration history cũ được giữ nguyên để chuỗi migration có thể replay.
+- [x] Hardening PR #1: rà soát và sửa các lỗi ưu tiên về correctness, privacy, access control và data integrity phát hiện trong pre-merge review; phân quyền importer reviewer/admin hiện có được giữ nguyên và chạy regression.
+- [x] Hardening PR #1: thực hiện audit mở rộng các bề mặt V2 còn lại về rights publication và access-control reviewer/admin; không phát hiện surface chưa bảo vệ trong phạm vi PR.
+- [x] Hardening PR #1: thêm regression test chứng minh bản ghi external thiếu rights publishable không thể được phát hành công khai.
+- [x] Hardening PR #1: kiểm tra public profile chỉ công bố album được đánh dấu public và có regression test cho ranh giới riêng tư.
+- [x] Hardening PR #1: thay PublicCollection dùng catalogue demo tĩnh bằng truy vấn `profiles.public`, chỉ công bố album public qua URL và có regression test riêng.
+- [x] Hardening PR #1: bổ sung guard ownership/not-found cho update/xóa scan nhận diện và regression test lỗi rõ ràng.
+- [x] Hardening PR #1: kiểm tra kiểm soát quyền sở hữu khi sửa/xóa collection album và ảnh; trả lỗi rõ ràng khi bản ghi không tồn tại.
+- [x] Hardening PR #1: kiểm tra AI image flow không lưu ảnh nguồn, giới hạn payload/mime và chỉ lưu metadata scan tối thiểu.
+- [x] Hardening PR #1: kiểm tra validation import/export tránh trùng lặp hoặc nhập dữ liệu không hợp lệ và bảo toàn dữ liệu hiện có khi lỗi.
+- [x] Hardening PR #1: thêm ràng buộc duy nhất `(userId, stampSlug)` và transaction import để chống duplicate do request đồng thời.
+- [x] Hardening PR #1: bổ sung regression coverage, chạy install frozen/check/test/build, cập nhật PR #1 và xác minh GitHub Actions thành công khi PR vẫn chưa merge.
+- [x] Xây keyword map và content calendar khoảng 100 bài blog philately theo cụm chủ đề, ý định tìm kiếm và liên kết nội bộ.
+- [x] Ghi rõ phạm vi toàn cầu và nguồn dữ liệu công khai trong content plan; không điền volume, KD hoặc CPC không có nguồn kiểm chứng.
+- [x] Thêm mô hình CMS cho bài viết với draft/review/published, slug, SEO title/description, canonical, structured data và nguồn tham khảo.
+- [x] Triển khai giao diện blog công khai có trang danh mục, trang bài viết và SEO technical hợp lệ; không xuất bản nội dung chưa duyệt.
+- [x] Viết lại nội dung từ nguồn được phép thành bài gốc, có kiểm tra trùng lặp, phân biệt rõ dữ kiện được dẫn nguồn với nội dung biên tập.
+- [x] Tạo khoảng 100 bản nháp blog tiếng Anh từ editorial plan bằng generator có JSON schema, quality gate và trạng thái draft; không tự publish hàng loạt.
+- [x] Kiểm tra 100 blog draft về liên kết nội bộ, trùng lặp cơ bản và các claim xác thực/định giá cụ thể; bổ sung regression test cho quality gate.
+- [x] Triển khai intake Wikimedia Commons qua API chính thức, lưu provenance/rights/attribution và bắt buộc review trước publish.
+- [x] Lấy batch Wikimedia Commons ban đầu bằng API chính thức: 99 record duy nhất được stage vào review queue và 0 record tự publish.
+- [x] Giữ adapter Smithsonian ở trạng thái không kích hoạt khi chưa có API key; hỗ trợ intake file Open Access đã tải hợp pháp thay vì gọi API trái phép.
+- [x] Bổ sung test, kiểm tra SEO kỹ thuật, checkpoint và cập nhật PR không merge cho CMS/blog/pipeline dữ liệu mở rộng.
+- [x] Hoàn thiện canonical, Article JSON-LD và render liên kết nội bộ an toàn trên bài blog công khai; thêm regression test metadata.
+- [x] Lập bản tóm tắt reviewable cho PR #1, xác minh commit và CI trước quyết định merge.
+- [x] Chuẩn bị đường dẫn kiểm tra nhánh V2 và hướng dẫn staging; chỉ merge PR #1 sau xác nhận rõ ràng của người dùng.
+- [ ] Merge PR #1 vào `feat/stamp-atlas-mvp` bằng merge commit theo xác nhận của người dùng và xác minh nhánh base sau merge.

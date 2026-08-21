@@ -11,6 +11,8 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "test:e2e": "playwright test",
+    "content:generate": "tsx scripts/generate-blog-drafts.mjs",
+    "content:audit": "tsx scripts/audit-blog-drafts.mjs",
     "import:wikimedia": "node scripts/import-wikimedia-stamps.mjs",
     "import:smithsonian": "node scripts/import-smithsonian-stamps.mjs",
     "db:push": "drizzle-kit generate && drizzle-kit migrate"

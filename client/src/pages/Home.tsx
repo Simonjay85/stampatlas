@@ -1,7 +1,8 @@
 import AppShell from "@/components/AppShell";
 import { StampVisual } from "@/components/StampVisual";
 import { FeaturedStampCard } from "@/components/FeaturedStampCard";
-import { countries, decades, featuredStamps, filterStamps, sources, stamps } from "@/data/catalog";
+import { countries, decades, featuredStamps, sources } from "@/data/catalog";
+import { usePublicCatalogue } from "@/hooks/usePublicCatalogue";
 import { ArrowRight, CheckCircle2, Layers3, Search, Sparkles } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link } from "wouter";
@@ -11,7 +12,8 @@ export default function Home() {
   const [country, setCountry] = useState("All countries");
   const [decade, setDecade] = useState("All eras");
   const [source, setSource] = useState("All sources");
-  const filteredFeatured = useMemo(() => filterStamps({ country, decade, source }).slice(0, 4), [country, decade, source]);
+  const { stamps: catalogue } = usePublicCatalogue({ country, decade, source });
+  const filteredFeatured = useMemo(() => catalogue.slice(0, 4), [catalogue]);
   return (
     <AppShell>
       <main>
@@ -26,7 +28,7 @@ export default function Home() {
                 <Link href="/identify" className="inline-flex items-center gap-2 rounded-full border border-[#173a34]/15 bg-white/70 px-5 py-3.5 text-sm font-semibold text-[#173a34] transition hover:bg-white active:scale-[.97]"><Sparkles size={16} /> Identify a stamp</Link>
               </div>
               <div className="mt-12 flex flex-wrap gap-x-8 gap-y-3 text-sm text-[#52675d]">
-                <span className="flex items-center gap-2"><CheckCircle2 size={16} className="text-[#4f806d]" /> 40 seed records</span>
+                <span className="flex items-center gap-2"><CheckCircle2 size={16} className="text-[#4f806d]" /> {catalogue.length} available records</span>
                 <span className="flex items-center gap-2"><CheckCircle2 size={16} className="text-[#4f806d]" /> 8 countries</span>
                 <span className="flex items-center gap-2"><CheckCircle2 size={16} className="text-[#4f806d]" /> 7 decades</span>
               </div>
@@ -58,7 +60,7 @@ export default function Home() {
         <section className="container py-20">
           <div className="grid gap-9 lg:grid-cols-[.72fr_1.28fr] lg:items-end">
             <div><p className="eyebrow">Start with the visual record</p><h2 className="mt-4 font-display text-4xl font-semibold tracking-[-.055em] text-[#173a34]">Catalogue entries that reward a closer look.</h2></div>
-            <p className="max-w-2xl text-base leading-7 text-[#52675d]">Use the public catalogue to move between countries, decades, and subjects. Every demo record has an image credit, identifying characteristics, and a carefully labelled evidence panel.</p>
+            <p className="max-w-2xl text-base leading-7 text-[#52675d]">Use the public catalogue to move between countries, decades, and subjects. Published external records retain their source, attribution and reuse information alongside seeded development records.</p>
           </div>
           <div className="mt-8 grid gap-3 rounded-[1.25rem] border border-[#173a34]/10 bg-white/75 p-4 shadow-[0_10px_24px_rgba(39,65,50,.05)] md:grid-cols-3 dark:border-white/10 dark:bg-white/[.04]">
             <HomeFilter label="Country" value={country} options={countries} onChange={setCountry} />
@@ -69,7 +71,7 @@ export default function Home() {
             {filteredFeatured.map((stamp, index) => <Link key={stamp.id} href={`/stamps/${stamp.slug}`}><FeaturedStampCard stamp={stamp} index={index} /></Link>)}
           </div>
           {!filteredFeatured.length && <p className="mt-6 text-center text-sm text-[#60746a] dark:text-[#bfd0c2]">No stamps match this combination. Try a different country, era, or source.</p>}
-          <div className="mt-10 text-center"><Link href="/explore" className="inline-flex items-center gap-2 text-sm font-semibold text-[#21493b] underline decoration-[#aac4b2] underline-offset-4 hover:decoration-[#21493b]">Browse all {stamps.length} demo records <ArrowRight size={15} /></Link></div>
+          <div className="mt-10 text-center"><Link href="/explore" className="inline-flex items-center gap-2 text-sm font-semibold text-[#21493b] underline decoration-[#aac4b2] underline-offset-4 hover:decoration-[#21493b]">Browse the full catalogue <ArrowRight size={15} /></Link></div>
         </section>
 
         <section className="bg-[#173a34] py-20 text-white"><div className="container grid gap-12 lg:grid-cols-3"><Feature icon={<Search size={20} />} number="01" title="Find your way in" text="Search by subject, country, or year. Gentle filters make large collections feel navigable." /><Feature icon={<Sparkles size={20} />} number="02" title="Compare a discovery" text="Upload a photo to see a mock visual match, confidence score, and distinguishing features." /><Feature icon={<Layers3 size={20} />} number="03" title="Build a living album" text="Save records, note their condition, and shape a shareable gallery at your own pace." /></div></section>

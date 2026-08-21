@@ -1,4 +1,4 @@
-import type { Stamp } from "@/data/catalog";
+import type { NormalizedStamp } from "@/data/normalizedCatalogue";
 import { cn } from "@/lib/utils";
 
 export function StampVisual({
@@ -7,7 +7,7 @@ export function StampVisual({
   imageClassName,
   showPerforation = true,
 }: {
-  stamp: Stamp;
+  stamp: Pick<NormalizedStamp, "image" | "imageAlt" | "countryCode">;
   className?: string;
   imageClassName?: string;
   showPerforation?: boolean;
