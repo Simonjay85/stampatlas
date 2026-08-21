@@ -7,6 +7,7 @@ import * as db from "./db";
 import { storagePut } from "./storage";
 import { analyzeStampImage } from "./identificationAi";
 import { decodeImageDataUrl } from "./imageUpload";
+import { fetchWikimediaStampRecords } from "./importers/wikimedia";
 import { filterStamps, getStamp } from "../client/src/data/catalog";
 import { isVisibleCatalogueStamp, normalizeExternalStamp, normalizeSeededStamp } from "../client/src/data/normalizedCatalogue";
 
@@ -22,6 +23,8 @@ const stagedRecordSchema = z.object({ sourceRecordId: z.string().min(1).max(255)
 const catalogueSearchSchema = z.object({ query: z.string().trim().max(160).optional(), country: z.string().trim().max(160).optional(), decade: z.string().regex(/^\d{4}s$/).optional(), topic: z.string().trim().max(160).optional(), condition: z.enum(["Mint", "Fine used", "Used", "FDC"]).optional(), source: z.enum(["Wikimedia Commons", "Smithsonian", "Public-domain archive"]).optional(), page: z.number().int().min(0).optional(), limit: z.number().int().min(1).max(48).optional() });
 const profileSchema = z.object({ username: z.string().trim().toLowerCase().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).min(3).max(48), displayName: z.string().trim().min(1).max(120), bio: z.string().trim().max(1200).nullable().optional(), avatarUrl: z.string().url().max(4000).nullable().optional(), isPublic: z.boolean() });
 const identificationScanSchema = z.object({ topCandidateSlug: z.string().min(1).max(160).nullable().optional(), candidateSlugs: z.array(z.string().min(1).max(160)).min(1).max(12), status: z.enum(["reviewed", "needs_research", "dismissed"]).default("needs_research"), note: z.string().trim().max(2000).nullable().optional() });
+const blogSourceSchema = z.object({ label: z.string().trim().min(1).max(180), url: z.string().url().max(2000) });
+const blogArticleSchema = z.object({ slug: z.string().trim().toLowerCase().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).min(3).max(180), title: z.string().trim().min(12).max(180), summary: z.string().trim().min(40).max(500), bodyMarkdown: z.string().trim().max(50_000), cluster: z.string().trim().min(2).max(80), seoTitle: z.string().trim().min(12).max(180), seoDescription: z.string().trim().min(70).max(320), canonicalUrl: z.string().url().max(2000).nullable().optional(), sourceReferences: z.array(blogSourceSchema).max(30).default([]) });
 
 export const appRouter = router({
   system: systemRouter,
@@ -69,6 +72,11 @@ export const appRouter = router({
   externalImports: router({
     list: reviewerProcedure.input(z.object({ reviewStatus: z.enum(["pending", "approved", "rejected"]).optional(), lastUpdatedByUserId: z.number().int().positive().optional() }).optional()).query(({ input }) => db.listExternalStampRecords(input)),
     stage: adminProcedure.input(z.object({ provider: z.enum(["wikimedia_commons", "smithsonian"]), query: z.string().min(1).max(500), records: z.array(stagedRecordSchema).min(1).max(100) })).mutation(({ ctx, input }) => db.stageExternalStampRecords(ctx.user.id, input.provider, input.query, input.records)),
+    fetchWikimedia: adminProcedure.input(z.object({ query: z.string().trim().min(2).max(200), limit: z.number().int().min(1).max(50).default(20) })).mutation(async ({ ctx, input }) => {
+      const records = await fetchWikimediaStampRecords(input.query, input.limit);
+      if (!records.length) throw new Error("No image records were returned by Wikimedia Commons for this query");
+      return db.stageExternalStampRecords(ctx.user.id, "wikimedia_commons", input.query, records);
+    }),
     updateMetadata: reviewerProcedure.input(z.object({ id: z.number().int().positive(), country: z.string().trim().max(160).nullable(), eraDecade: z.string().regex(/^\d{4}s$/).nullable() })).mutation(({ ctx, input }) => {
       const { id, ...metadata } = input;
       return db.updateExternalStampMetadata(ctx.user.id, id, metadata);
@@ -90,6 +98,16 @@ export const appRouter = router({
     mine: protectedProcedure.query(({ ctx }) => db.getCollectorProfile(ctx.user.id)),
     update: protectedProcedure.input(profileSchema).mutation(({ ctx, input }) => db.updateCollectorProfile(ctx.user.id, input)),
     public: publicProcedure.input(z.object({ username: z.string().trim().toLowerCase().min(3).max(48) })).query(({ input }) => db.getPublicCollectorProfile(input.username)),
+  }),
+  blog: router({
+    list: publicProcedure.input(z.object({ cluster: z.string().trim().min(2).max(80).optional() }).optional()).query(({ input }) => db.listPublishedBlogArticles(input?.cluster)),
+    bySlug: publicProcedure.input(z.object({ slug: z.string().trim().toLowerCase().min(3).max(180) })).query(({ input }) => db.getPublishedBlogArticleBySlug(input.slug)),
+    editorialList: reviewerProcedure.input(z.object({ status: z.enum(["draft", "in_review", "published", "archived"]).optional() }).optional()).query(({ input }) => db.listEditorialBlogArticles(input?.status)),
+    create: reviewerProcedure.input(blogArticleSchema).mutation(({ ctx, input }) => db.createBlogArticle(ctx.user.id, input)),
+    update: reviewerProcedure.input(blogArticleSchema.partial().extend({ id: z.number().int().positive() })).mutation(({ ctx, input }) => { const { id, ...patch } = input; return db.updateBlogArticle(ctx.user.id, id, patch); }),
+    submitForReview: reviewerProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ ctx, input }) => db.submitBlogArticleForReview(ctx.user.id, input.id)),
+    publish: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ ctx, input }) => db.publishBlogArticle(ctx.user.id, input.id)),
+    archive: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ input }) => db.archiveBlogArticle(input.id)),
   }),
   identification: router({
     list: protectedProcedure.query(({ ctx }) => db.listIdentificationScans(ctx.user.id)),

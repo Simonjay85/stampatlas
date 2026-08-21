@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, inArray, like, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { albums, albumItems, collectionItems, collectorProfiles, externalImportJobs, externalStampAssets, externalStampMetadataHistory, externalStampRecords, identificationScans, InsertUser, publishedExternalStamps, users } from "../drizzle/schema";
+import { albums, albumItems, blogArticles, collectionItems, collectorProfiles, externalImportJobs, externalStampAssets, externalStampMetadataHistory, externalStampRecords, identificationScans, InsertUser, publishedExternalStamps, users } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 import { classifyImportedStamp } from "./importers/classify";
 
@@ -49,6 +49,9 @@ export type AlbumInput = { name: string; description: string; coverStampSlug: st
 export type ReuseStatus = "public_domain" | "cc_by" | "permission_granted" | "metadata_only" | "needs_review" | "blocked";
 export type ImportedAssetInput = { providerAssetId: string; mediaUrl: string; previewUrl?: string | null; mimeType?: string | null; creator?: string | null; attribution?: string | null; rightsLabel?: string | null; rightsUrl?: string | null; reuseStatus: ReuseStatus };
 export type ImportedStampInput = { sourceRecordId: string; canonicalUrl: string; title: string; country?: string | null; issueDate?: string | null; denomination?: string | null; description?: string | null; reuseStatus: ReuseStatus; rightsLabel?: string | null; rightsUrl?: string | null; attribution?: string | null; sourcePayload: string; assets: ImportedAssetInput[] };
+export type BlogArticleStatus = "draft" | "in_review" | "published" | "archived";
+export type BlogSourceReference = { label: string; url: string };
+export type BlogArticleInput = { slug: string; title: string; summary: string; bodyMarkdown: string; cluster: string; seoTitle: string; seoDescription: string; canonicalUrl?: string | null; sourceReferences: BlogSourceReference[] };
 
 const demoItems: CollectionItemInput[] = [
   { stampSlug: "flag-over-capitol", condition: "Mint", quantity: 1, collectionStatus: "owned", grade: "ungraded", customTags: [], purchasePrice: 18, acquiredAt: "2026-08-12", notes: "Crisp margins; acquired from a local club exchange." },
@@ -386,6 +389,80 @@ export async function getPublishedExternalStampsBySlugs(slugs: string[]) {
   if (!records.length) return [];
   const assets = await db.select().from(externalStampAssets).where(inArray(externalStampAssets.externalStampRecordId, records.map((record) => record.externalStampRecordId)));
   return records.map((record) => ({ ...record, assets: assets.filter((asset) => asset.externalStampRecordId === record.externalStampRecordId) }));
+}
+
+function serializeBlogSources(sources: BlogSourceReference[]) { return JSON.stringify(sources); }
+function materializeBlogArticle<T extends { sourceReferencesJson: string }>(article: T) {
+  try { return { ...article, sourceReferences: JSON.parse(article.sourceReferencesJson) as BlogSourceReference[] }; }
+  catch { return { ...article, sourceReferences: [] as BlogSourceReference[] }; }
+}
+export async function getBlogArticleForEditorial(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const article = await db.select().from(blogArticles).where(eq(blogArticles.id, id)).limit(1);
+  if (!article[0]) throw new Error("Blog article unavailable");
+  return article[0];
+}
+export async function listPublishedBlogArticles(cluster?: string) {
+  const db = await getDb();
+  if (!db) return [];
+  const articles = await db.select().from(blogArticles).where(and(eq(blogArticles.status, "published"), cluster ? eq(blogArticles.cluster, cluster) : undefined)).orderBy(desc(blogArticles.publishedAt)).limit(100);
+  return articles.map(materializeBlogArticle);
+}
+export async function getPublishedBlogArticleBySlug(slug: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const article = await db.select().from(blogArticles).where(and(eq(blogArticles.slug, slug), eq(blogArticles.status, "published"))).limit(1);
+  return article[0] ? materializeBlogArticle(article[0]) : null;
+}
+export async function listEditorialBlogArticles(status?: BlogArticleStatus) {
+  const db = await getDb();
+  if (!db) return [];
+  const articles = await db.select().from(blogArticles).where(status ? eq(blogArticles.status, status) : undefined).orderBy(desc(blogArticles.updatedAt)).limit(250);
+  return articles.map(materializeBlogArticle);
+}
+export async function createBlogArticle(authorUserId: number, input: BlogArticleInput) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const existing = await db.select({ id: blogArticles.id }).from(blogArticles).where(eq(blogArticles.slug, input.slug)).limit(1);
+  if (existing[0]) throw new Error("A blog article already uses this slug");
+  await db.insert(blogArticles).values({ ...input, sourceReferencesJson: serializeBlogSources(input.sourceReferences), authorUserId, canonicalUrl: input.canonicalUrl ?? null });
+  return getBlogArticleForEditorial((await db.select({ id: blogArticles.id }).from(blogArticles).where(eq(blogArticles.slug, input.slug)).limit(1))[0]!.id);
+}
+export async function updateBlogArticle(editorUserId: number, id: number, patch: Partial<BlogArticleInput>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  void editorUserId;
+  await getBlogArticleForEditorial(id);
+  const values: Record<string, unknown> = { ...patch };
+  if (patch.sourceReferences !== undefined) { values.sourceReferencesJson = serializeBlogSources(patch.sourceReferences); delete values.sourceReferences; }
+  if (patch.canonicalUrl === undefined) delete values.canonicalUrl;
+  await db.update(blogArticles).set(values).where(eq(blogArticles.id, id));
+  return getBlogArticleForEditorial(id);
+}
+export async function submitBlogArticleForReview(reviewerUserId: number, id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const article = await getBlogArticleForEditorial(id);
+  if (article.status !== "draft") throw new Error("Only draft articles can be submitted for review");
+  if (!article.bodyMarkdown.trim() || !materializeBlogArticle(article).sourceReferences.length) throw new Error("Articles require an original body and at least one source before review");
+  await db.update(blogArticles).set({ status: "in_review", reviewedByUserId: reviewerUserId, reviewedAt: new Date() }).where(eq(blogArticles.id, id));
+  return getBlogArticleForEditorial(id);
+}
+export async function publishBlogArticle(publisherUserId: number, id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const article = await getBlogArticleForEditorial(id);
+  if (article.status !== "in_review") throw new Error("Only reviewed articles can be published");
+  await db.update(blogArticles).set({ status: "published", publishedByUserId: publisherUserId, publishedAt: new Date() }).where(eq(blogArticles.id, id));
+  return getBlogArticleForEditorial(id);
+}
+export async function archiveBlogArticle(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  await getBlogArticleForEditorial(id);
+  await db.update(blogArticles).set({ status: "archived" }).where(eq(blogArticles.id, id));
+  return getBlogArticleForEditorial(id);
 }
 
 export type IdentificationScanInput = { topCandidateSlug?: string | null; candidateSlugs: string[]; status: "reviewed" | "needs_research" | "dismissed"; note?: string | null; aiAnalysisJson?: string | null; model?: string | null };

@@ -46,6 +46,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
 
           <nav className="ml-auto hidden items-center gap-1 lg:flex" aria-label="Primary navigation">
             <NavLink href="/explore">Browse</NavLink>
+            <NavLink href="/blog">Journal</NavLink>
             <NavLink href="/identify" icon><Sparkles size={14} /> Identify</NavLink>
             {user && <NavLink href="/identify/history">My scans</NavLink>}
             <NavLink href="/dashboard">My Collection</NavLink>
@@ -71,7 +72,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
         <div className="flex gap-5 overflow-x-auto px-5 pb-3 text-xs font-semibold uppercase tracking-[0.12em] text-[#4a5e55] lg:hidden">
-          <Link href="/explore">Browse</Link><Link href="/identify">Identify</Link>{user && <Link href="/identify/history">My scans</Link>}<Link href="/dashboard">My Collection</Link><Link href="/albums">Albums</Link>{user && <Link href="/profile">Profile</Link>}{canReviewImports && <Link href="/admin/imports">Review imports{pendingImports.data?.count ? ` (${pendingImports.data.count})` : ""}</Link>}
+          <Link href="/explore">Browse</Link><Link href="/blog">Journal</Link><Link href="/identify">Identify</Link>{user && <Link href="/identify/history">My scans</Link>}<Link href="/dashboard">My Collection</Link><Link href="/albums">Albums</Link>{user && <Link href="/profile">Profile</Link>}{canReviewImports && <Link href="/admin/imports">Review imports{pendingImports.data?.count ? ` (${pendingImports.data.count})` : ""}</Link>}
         </div>
       </header>
       <div id="main-content" tabIndex={-1}>{children}</div>

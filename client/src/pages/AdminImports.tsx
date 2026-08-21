@@ -18,6 +18,7 @@ export default function AdminImports() {
   const { user, loading } = useAuth();
   const [filter, setFilter] = useState<Filter>("pending");
   const [lastEditorId, setLastEditorId] = useState("all");
+  const [wikimediaQuery, setWikimediaQuery] = useState("");
   const isReviewer = user?.role === "reviewer" || user?.role === "admin";
   const isAdmin = user?.role === "admin";
   const input = useMemo(() => {
@@ -39,6 +40,7 @@ export default function AdminImports() {
   const review = trpc.externalImports.review.useMutation({ onSuccess: invalidateImports });
   const updateMetadata = trpc.externalImports.updateMetadata.useMutation({ onSuccess: invalidateImports });
   const publish = trpc.externalImports.publish.useMutation({ onSuccess: invalidateImports });
+  const fetchWikimedia = trpc.externalImports.fetchWikimedia.useMutation({ onSuccess: invalidateImports });
   const updateRole = trpc.accessControl.updateRole.useMutation({ onSuccess: () => accessUsers.refetch() });
 
   if (loading) return <div className="grid min-h-screen place-items-center"><LoaderCircle className="animate-spin text-[#426f5a]" /></div>;
@@ -53,6 +55,8 @@ export default function AdminImports() {
         </div>
 
         <section className="mt-6 rounded-[1.25rem] border border-[#317154]/15 bg-[#ecf5ed] p-4 dark:border-[#8ac89f]/15 dark:bg-[#153528]"><div className="flex gap-3"><ShieldCheck className="mt-0.5 shrink-0 text-[#317154] dark:text-[#8ac89f]" size={20} /><div><p className="text-sm font-bold text-[#244c3e] dark:text-[#dcf3e2]">You are signed in as {user.role}</p><p className="mt-1 text-xs leading-5 text-[#597066] dark:text-[#b8d2bf]">{user.role === "admin" ? capability.admin : capability.reviewer}</p></div></div></section>
+
+        {isAdmin && <section className="mt-6 rounded-[1.25rem] border border-[#173a34]/10 bg-white p-5 dark:border-white/10 dark:bg-white/[.04]"><p className="eyebrow">Permitted source intake</p><h2 className="mt-3 font-display text-2xl font-semibold text-[#173a34] dark:text-[#eef4ee]">Stage Wikimedia Commons results</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-[#60746a] dark:text-[#bcd0c4]">This uses the official Wikimedia API to stage image metadata and licence fields. Results remain pending; a reviewer must check provenance and rights before an administrator can publish any record.</p><form className="mt-4 flex flex-col gap-3 sm:flex-row" onSubmit={(event) => { event.preventDefault(); if (wikimediaQuery.trim()) fetchWikimedia.mutate({ query: wikimediaQuery.trim(), limit: 20 }); }}><label className="sr-only" htmlFor="wikimedia-query">Wikimedia search query</label><input id="wikimedia-query" value={wikimediaQuery} onChange={(event) => setWikimediaQuery(event.target.value)} placeholder="e.g. Japan postage stamp 1950" className="h-11 flex-1 rounded-xl border border-[#173a34]/15 bg-[#f7faf6] px-4 text-sm text-[#244c3e] outline-none focus:border-[#5d887a] focus:ring-4 focus:ring-[#dce8df] dark:border-white/15 dark:bg-white/5 dark:text-white" /><button disabled={!wikimediaQuery.trim() || fetchWikimedia.isPending} className="rounded-xl bg-[#173a34] px-5 py-3 text-sm font-bold text-white disabled:opacity-50">{fetchWikimedia.isPending ? "Staging…" : "Stage for review"}</button></form>{fetchWikimedia.error ? <p className="mt-3 text-sm text-[#a24d42]">{fetchWikimedia.error.message}</p> : null}{fetchWikimedia.data ? <p className="mt-3 text-sm font-semibold text-[#315746]">Staged {fetchWikimedia.data.stagedCount} of {fetchWikimedia.data.receivedCount} result(s). No records were published automatically.</p> : null}</section>}
 
         {imports.isLoading ? <div className="grid min-h-[45vh] place-items-center"><LoaderCircle className="animate-spin text-[#426f5a]" /></div> : <div className="mt-8 grid gap-5">{imports.data?.map((record) => <ImportReviewCard key={record.id} record={record} reviewing={review.isPending || updateMetadata.isPending} publishing={publish.isPending} canPublish={isAdmin} history={<MetadataHistoryPanel recordId={record.id} />} onReview={(reviewStatus) => review.mutate({ id: record.id, reviewStatus, reviewNote: "Reviewed in StampAtlas editorial console." })} onSaveMetadata={(metadata) => updateMetadata.mutateAsync({ id: record.id, ...metadata })} onPublish={() => publish.mutate({ id: record.id })} />)}{!imports.data?.length && <div className="rounded-[1.5rem] border border-dashed border-[#173a34]/20 py-20 text-center text-sm text-[#63766c] dark:border-white/20 dark:text-[#bfd0c2]">No imported records match this review state and editor filter.</div>}</div>}
 

@@ -130,3 +130,11 @@
 - [x] Hardening PR #1: kiểm tra validation import/export tránh trùng lặp hoặc nhập dữ liệu không hợp lệ và bảo toàn dữ liệu hiện có khi lỗi.
 - [x] Hardening PR #1: thêm ràng buộc duy nhất `(userId, stampSlug)` và transaction import để chống duplicate do request đồng thời.
 - [x] Hardening PR #1: bổ sung regression coverage, chạy install frozen/check/test/build, cập nhật PR #1 và xác minh GitHub Actions thành công khi PR vẫn chưa merge.
+- [x] Xây keyword map và content calendar khoảng 100 bài blog philately theo cụm chủ đề, ý định tìm kiếm và liên kết nội bộ.
+- [x] Ghi rõ phạm vi toàn cầu và nguồn dữ liệu công khai trong content plan; không điền volume, KD hoặc CPC không có nguồn kiểm chứng.
+- [x] Thêm mô hình CMS cho bài viết với draft/review/published, slug, SEO title/description, canonical, structured data và nguồn tham khảo.
+- [x] Triển khai giao diện blog công khai có trang danh mục, trang bài viết và SEO technical hợp lệ; không xuất bản nội dung chưa duyệt.
+- [ ] Viết lại nội dung từ nguồn được phép thành bài gốc, có kiểm tra trùng lặp, phân biệt rõ dữ kiện được dẫn nguồn với nội dung biên tập.
+- [x] Triển khai intake Wikimedia Commons qua API chính thức, lưu provenance/rights/attribution và bắt buộc review trước publish.
+- [ ] Giữ adapter Smithsonian ở trạng thái không kích hoạt khi chưa có API key; hỗ trợ intake file Open Access đã tải hợp pháp thay vì gọi API trái phép.
+- [ ] Bổ sung test, kiểm tra SEO kỹ thuật, checkpoint và cập nhật PR không merge cho CMS/blog/pipeline dữ liệu mở rộng.

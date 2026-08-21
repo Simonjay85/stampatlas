@@ -143,6 +143,28 @@ export const publishedExternalStamps = mysqlTable("publishedExternalStamps", {
   publishedAt: timestamp("publishedAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => [index("published_external_published_idx").on(table.publishedAt)]);
+
+export const blogArticles = mysqlTable("blogArticles", {
+  id: int("id").autoincrement().primaryKey(),
+  slug: varchar("slug", { length: 180 }).notNull().unique(),
+  title: varchar("title", { length: 180 }).notNull(),
+  summary: varchar("summary", { length: 500 }).notNull(),
+  bodyMarkdown: text("bodyMarkdown").notNull(),
+  cluster: varchar("cluster", { length: 80 }).notNull(),
+  status: mysqlEnum("status", ["draft", "in_review", "published", "archived"]).notNull().default("draft"),
+  seoTitle: varchar("seoTitle", { length: 180 }).notNull(),
+  seoDescription: varchar("seoDescription", { length: 320 }).notNull(),
+  canonicalUrl: text("canonicalUrl"),
+  sourceReferencesJson: text("sourceReferencesJson").notNull(),
+  authorUserId: int("authorUserId").references(() => users.id, { onDelete: "set null" }),
+  reviewedByUserId: int("reviewedByUserId").references(() => users.id, { onDelete: "set null" }),
+  reviewedAt: timestamp("reviewedAt"),
+  publishedByUserId: int("publishedByUserId").references(() => users.id, { onDelete: "set null" }),
+  publishedAt: timestamp("publishedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => [index("blog_article_status_published_idx").on(table.status, table.publishedAt), index("blog_article_cluster_published_idx").on(table.cluster, table.publishedAt)]);
+
 export const identificationScans = mysqlTable("identificationScans", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
@@ -163,4 +185,5 @@ export type ExternalStampRecord = typeof externalStampRecords.$inferSelect;
 export type ExternalStampAsset = typeof externalStampAssets.$inferSelect;
 export type ExternalStampMetadataHistory = typeof externalStampMetadataHistory.$inferSelect;
 export type PublishedExternalStamp = typeof publishedExternalStamps.$inferSelect;
+export type BlogArticle = typeof blogArticles.$inferSelect;
 export type IdentificationScan = typeof identificationScans.$inferSelect;
